@@ -1,0 +1,47 @@
+repos:
+  - repo: local
+    hooks:
+      - id: api-ruff-check
+        name: API ruff check
+        entry: bash -c 'cd api && uv run ruff check .'
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+        types_or: [python, toml]
+
+      - id: api-ruff-format
+        name: API ruff format
+        entry: bash -c 'cd api && uv run ruff format --check .'
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+        types_or: [python, toml]
+
+      - id: api-ty-check
+        name: API ty check
+        entry: bash -c 'cd api && uv run ty check'
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+        types_or: [python]
+
+      - id: api-pytest
+        name: API pytest
+        entry: bash -c 'cd api && uv run pytest'
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+        types_or: [python]
+
+      - id: pytest-pre-push
+        name: pytest (pre-push)
+        entry: bash -c 'cd api && uv run pytest'
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+
+      - id: conventional-commit-message
+        name: conventional commit message
+        entry: python3 .scripts/validate_commit_msg.py
+        language: system
+        stages: [commit-msg]

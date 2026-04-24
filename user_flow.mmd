@@ -1,0 +1,70 @@
+flowchart TD
+    START(("Start"))
+
+    START --> A1["Admin: tworzy konta użytkowników"]
+    A1 --> A2["Admin: przypisuje Koordynatora do oddziału"]
+    A2 --> C1["Koordynator: tworzy nowy grafik"]
+
+    C1 --> S_DRAFT["Stan grafiku: Szkic"]
+    S_DRAFT --> C2["Koordynator: definiuje okres planowania, deadline dostępności i pulę lekarzy"]
+
+    C2 --> C3{"Czy trzeba dodać lekarza spoza systemu?"}
+    C3 -- "Tak" --> C4["Koordynator: wpisuje dane lekarza i wysyła zaproszenie e-mail"]
+    C4 --> L0["Lekarz: akceptuje zaproszenie i aktywuje konto"]
+    C3 -- "Nie" --> L1["Lekarz: loguje się"]
+    L0 --> L1
+
+    L1 --> L2["Lekarz: zgłasza dostępność, preferencje kategorii I–III i wnioski urlopowe"]
+    L2 --> S1["System: potwierdza zgłoszenie i aktualizuje dostępność"]
+
+    S1 --> D1{"Czy minął deadline zgłoszeń?"}
+    D1 -- "Nie" --> L2
+    D1 -- "Tak" --> S2["System: blokuje edycję dostępności"]
+
+    S2 --> C5["Koordynator: uruchamia generowanie grafiku"]
+    C5 --> S3["System: generuje grafik deterministycznie na podstawie dostępności, ograniczeń twardych i preferencji"]
+
+    S3 --> G1{"Czy wszystkie dyżury 24h są obsadzone zgodnie z twardymi ograniczeniami?"}
+    G1 -- "Nie" --> R1["System: tworzy raport konfliktów i wskazuje nieobsadzone dyżury"]
+    R1 --> C6["Koordynator: wykonuje korekty, kontaktuje lekarzy lub ponownie otwiera zbieranie dostępności"]
+    C6 --> C5
+
+    G1 -- "Tak" --> S_GENERATED["Stan grafiku: Wygenerowany"]
+    S_GENERATED --> C7["Koordynator: przegląda grafik, balansuje obciążenie i wykonuje ręczne korekty"]
+
+    C7 --> V1{"Czy korekta narusza twarde ograniczenia?"}
+    V1 -- "Tak" --> B1["System: blokuje zmianę i pokazuje naruszoną regułę"]
+    B1 --> C7
+    V1 -- "Nie" --> C8{"Czy grafik gotowy do publikacji?"}
+
+    C8 -- "Nie" --> C7
+    C8 -- "Tak" --> C9["Koordynator: publikuje grafik"]
+
+    C9 --> S_PUBLISHED["Stan grafiku: Opublikowany"]
+    S_PUBLISHED --> N1["System: wysyła powiadomienia e-mail/push i udostępnia eksport ICS"]
+    N1 --> L3["Lekarz: przegląda swój opublikowany grafik"]
+
+    L3 --> SW0{"Czy lekarz chce zamienić dyżur?"}
+    SW0 -- "Nie" --> M1["Koordynator: monitoruje metryki, limity i alerty zgodności"]
+
+    SW0 -- "Tak" --> SW1["Lekarz: wybiera własny dyżur i wskazuje lekarza lub dyżur do wymiany"]
+    SW1 --> SW2["Drugi lekarz: akceptuje lub odrzuca propozycję"]
+
+    SW2 --> SW3{"Czy lekarze zaakceptowali zamianę?"}
+    SW3 -- "Nie" --> L3
+    SW3 -- "Tak" --> SW4["System: waliduje zamianę względem twardych ograniczeń"]
+
+    SW4 --> SW5{"Wynik walidacji"}
+    SW5 -- "Niezgodna" --> SW6["System: odrzuca zamianę i pokazuje naruszone reguły"]
+    SW6 --> L3
+
+    SW5 -- "Zgodna" --> C10["Koordynator: zatwierdza zamianę"]
+    C10 --> SW7["System: aktualizuje grafik, powiadamia lekarzy i zapisuje AuditLogEntry"]
+    SW7 --> M1
+
+    M1 --> END_CHECK{"Czy zakończono okres lub utworzono nowy grafik?"}
+    END_CHECK -- "Nie" --> M1
+    END_CHECK -- "Tak" --> ARC1["System/Koordynator: archiwizuje grafik"]
+
+    ARC1 --> S_ARCHIVED["Stan grafiku: Zarchiwizowany"]
+    S_ARCHIVED --> END(("Koniec"))

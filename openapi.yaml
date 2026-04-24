@@ -1,0 +1,2777 @@
+openapi: 3.1.0
+info:
+  title: Medical Duty Scheduling API
+  summary: SaaS API for managing 24-hour medical duty schedules, availability, leave requests and shift swaps.
+  description: >-
+    API contract for an MVP system supporting Admin, Coordinator and Doctor roles.
+    The system manages departments, doctors, 24-hour shifts, availability declarations,
+    deterministic schedule generation, publication, post-publication swaps, audit logs,
+    notifications and calendar exports.
+  version: 0.1.0
+servers:
+  - url: https://api.dyzury.example.com/v1
+    description: Production placeholder
+  - url: https://staging-api.dyzury.example.com/v1
+    description: Staging placeholder
+security:
+  - bearerAuth: []
+tags:
+  - name: Auth
+  - name: Users
+  - name: Departments
+  - name: Doctors
+  - name: Invitations
+  - name: Configuration
+  - name: Schedules
+  - name: Availability
+  - name: Shifts
+  - name: Assignments
+  - name: Generation
+  - name: Validation
+  - name: LeaveRequests
+  - name: Swaps
+  - name: Metrics
+  - name: Notifications
+  - name: CalendarExports
+  - name: Audit
+
+paths:
+  /auth/login:
+    post:
+      tags: [Auth]
+      operationId: login
+      security: []
+      summary: Authenticate user with email and password.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Authenticated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokenResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      operationId: refreshToken
+      security: []
+      summary: Refresh access token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: Refreshed token pair.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokenResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/me:
+    get:
+      tags: [Auth]
+      operationId: getCurrentUser
+      summary: Return current authenticated user.
+      responses:
+        '200':
+          description: Current user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentUser'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /users:
+    get:
+      tags: [Users]
+      operationId: listUsers
+      summary: List system users.
+      x-roles: [ADMIN]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: role
+          in: query
+          schema:
+            $ref: '#/components/schemas/RoleCode'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/UserStatus'
+      responses:
+        '200':
+          description: Users list.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserListResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags: [Users]
+      operationId: createUser
+      summary: Create system user.
+      x-roles: [ADMIN]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreateRequest'
+      responses:
+        '201':
+          description: User created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /users/{userId}:
+    parameters:
+      - $ref: '#/components/parameters/UserId'
+    get:
+      tags: [Users]
+      operationId: getUser
+      summary: Get user by ID.
+      x-roles: [ADMIN]
+      responses:
+        '200':
+          description: User.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Users]
+      operationId: updateUser
+      summary: Update user profile or status.
+      x-roles: [ADMIN]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdateRequest'
+      responses:
+        '200':
+          description: Updated user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /users/{userId}/roles:
+    parameters:
+      - $ref: '#/components/parameters/UserId'
+    put:
+      tags: [Users]
+      operationId: replaceUserRoles
+      summary: Replace all role assignments for a user.
+      x-roles: [ADMIN]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRoleReplacementRequest'
+      responses:
+        '200':
+          description: Updated user roles.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /departments:
+    get:
+      tags: [Departments]
+      operationId: listDepartments
+      summary: List departments.
+      x-roles: [ADMIN, COORDINATOR]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: active
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Departments list.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DepartmentListResponse'
+    post:
+      tags: [Departments]
+      operationId: createDepartment
+      summary: Create department.
+      x-roles: [ADMIN]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DepartmentCreateRequest'
+      responses:
+        '201':
+          description: Department created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Department'
+
+  /departments/{departmentId}:
+    parameters:
+      - $ref: '#/components/parameters/DepartmentId'
+    get:
+      tags: [Departments]
+      operationId: getDepartment
+      summary: Get department by ID.
+      x-roles: [ADMIN, COORDINATOR]
+      responses:
+        '200':
+          description: Department.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Department'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Departments]
+      operationId: updateDepartment
+      summary: Update department.
+      x-roles: [ADMIN]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DepartmentUpdateRequest'
+      responses:
+        '200':
+          description: Updated department.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Department'
+
+  /departments/{departmentId}/coordinator:
+    parameters:
+      - $ref: '#/components/parameters/DepartmentId'
+    put:
+      tags: [Departments]
+      operationId: assignCoordinatorToDepartment
+      summary: Assign active coordinator to department.
+      description: Replaces the active coordinator assignment for the department.
+      x-roles: [ADMIN]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CoordinatorAssignmentRequest'
+      responses:
+        '200':
+          description: Active coordinator assignment.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CoordinatorAssignment'
+
+  /doctor-profiles:
+    get:
+      tags: [Doctors]
+      operationId: listDoctorProfiles
+      summary: List doctor profiles.
+      x-roles: [ADMIN, COORDINATOR]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: departmentId
+          in: query
+          schema:
+            $ref: '#/components/schemas/Id'
+        - name: active
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Doctor profiles list.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DoctorProfileListResponse'
+    post:
+      tags: [Doctors]
+      operationId: createDoctorProfile
+      summary: Create doctor profile for an existing user.
+      x-roles: [ADMIN]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DoctorProfileCreateRequest'
+      responses:
+        '201':
+          description: Doctor profile created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DoctorProfile'
+
+  /doctor-profiles/{doctorProfileId}:
+    parameters:
+      - $ref: '#/components/parameters/DoctorProfileId'
+    get:
+      tags: [Doctors]
+      operationId: getDoctorProfile
+      summary: Get doctor profile.
+      x-roles: [ADMIN, COORDINATOR, DOCTOR]
+      responses:
+        '200':
+          description: Doctor profile.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DoctorProfile'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Doctors]
+      operationId: updateDoctorProfile
+      summary: Update doctor profile.
+      x-roles: [ADMIN, COORDINATOR]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DoctorProfileUpdateRequest'
+      responses:
+        '200':
+          description: Updated doctor profile.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DoctorProfile'
+
+  /doctor-invitations:
+    get:
+      tags: [Invitations]
+      operationId: listDoctorInvitations
+      summary: List doctor invitations.
+      x-roles: [ADMIN, COORDINATOR]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: departmentId
+          in: query
+          schema:
+            $ref: '#/components/schemas/Id'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/InvitationStatus'
+      responses:
+        '200':
+          description: Doctor invitations list.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DoctorInvitationListResponse'
+    post:
+      tags: [Invitations]
+      operationId: createDoctorInvitation
+      summary: Invite doctor to a department and optional schedule.
+      x-roles: [COORDINATOR]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DoctorInvitationCreateRequest'
+      responses:
+        '201':
+          description: Invitation created and email queued.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DoctorInvitation'
+
+  /doctor-invitations/{invitationId}/resend:
+    parameters:
+      - $ref: '#/components/parameters/InvitationId'
+    post:
+      tags: [Invitations]
+      operationId: resendDoctorInvitation
+      summary: Resend doctor invitation email.
+      x-roles: [COORDINATOR]
+      responses:
+        '200':
+          description: Invitation email queued again.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DoctorInvitation'
+
+  /doctor-invitations/accept:
+    post:
+      tags: [Invitations]
+      operationId: acceptDoctorInvitation
+      security: []
+      summary: Accept invitation and create doctor account.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcceptInvitationRequest'
+      responses:
+        '201':
+          description: Account activated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokenResponse'
+
+  /preference-categories:
+    get:
+      tags: [Configuration]
+      operationId: listPreferenceCategories
+      summary: List configured preference categories.
+      x-roles: [ADMIN, COORDINATOR, DOCTOR]
+      responses:
+        '200':
+          description: Preference categories.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PreferenceCategory'
+    post:
+      tags: [Configuration]
+      operationId: createPreferenceCategory
+      summary: Create preference category.
+      x-roles: [ADMIN]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PreferenceCategoryCreateRequest'
+      responses:
+        '201':
+          description: Preference category created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PreferenceCategory'
+
+  /constraint-rules:
+    get:
+      tags: [Configuration]
+      operationId: listConstraintRules
+      summary: List hard and soft constraint rules.
+      x-roles: [ADMIN, COORDINATOR]
+      parameters:
+        - name: type
+          in: query
+          schema:
+            $ref: '#/components/schemas/ConstraintType'
+        - name: active
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Constraint rules.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ConstraintRule'
+
+  /schedules:
+    get:
+      tags: [Schedules]
+      operationId: listSchedules
+      summary: List schedules visible to the user.
+      x-roles: [ADMIN, COORDINATOR, DOCTOR]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: departmentId
+          in: query
+          schema:
+            $ref: '#/components/schemas/Id'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/ScheduleStatus'
+        - name: periodFrom
+          in: query
+          schema:
+            $ref: '#/components/schemas/Date'
+        - name: periodTo
+          in: query
+          schema:
+            $ref: '#/components/schemas/Date'
+      responses:
+        '200':
+          description: Schedules list.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduleListResponse'
+    post:
+      tags: [Schedules]
+      operationId: createSchedule
+      summary: Create schedule draft.
+      x-roles: [COORDINATOR]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduleCreateRequest'
+      responses:
+        '201':
+          description: Schedule draft created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Schedule'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /schedules/{scheduleId}:
+    parameters:
+      - $ref: '#/components/parameters/ScheduleId'
+    get:
+      tags: [Schedules]
+      operationId: getSchedule
+      summary: Get schedule details.
+      x-roles: [ADMIN, COORDINATOR, DOCTOR]
+      responses:
+        '200':
+          description: Schedule.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Schedule'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Schedules]
+      operationId: updateScheduleDraft
+      summary: Update schedule metadata while editable.
+      x-roles: [COORDINATOR]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduleUpdateRequest'
+      responses:
+        '200':
+          description: Updated schedule.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Schedule'
+        '409':
+          description: Schedule status does not allow the requested update.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /schedules/{scheduleId}/participants:
+    parameters:
+      - $ref: '#/components/parameters/ScheduleId'
+    get:
+      tags: [Schedules]
+      operationId: listScheduleParticipants
+      summary: List doctors participating in a schedule.
+      x-roles: [COORDINATOR]
+      responses:
+        '200':
+          description: Participants.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ScheduleParticipant'
+    post:
+      tags: [Schedules]
+      operationId: addScheduleParticipant
+      summary: Add doctor to schedule participant pool.
+      x-roles: [COORDINATOR]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduleParticipantCreateRequest'
+      responses:
+        '201':
+          description: Participant added.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduleParticipant'
+
+  /schedules/{scheduleId}/participants/{doctorProfileId}:
+    parameters:
+      - $ref: '#/components/parameters/ScheduleId'
+      - $ref: '#/components/parameters/DoctorProfileId'
+    delete:
+      tags: [Schedules]
+      operationId: removeScheduleParticipant
+      summary: Remove doctor from editable schedule participant pool.
+      x-roles: [COORDINATOR]
+      responses:
+        '204':
+          description: Participant removed.
+        '409':
+          description: Cannot remove doctor because schedule is published or assignments exist.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /schedules/{scheduleId}/availability:
+    parameters:
+      - $ref: '#/components/parameters/ScheduleId'
+    get:
+      tags: [Availability]
+      operationId: listScheduleAvailability
+      summary: List all availability declarations for a schedule.
+      x-roles: [COORDINATOR]
+      responses:
+        '200':
+          description: Availability declarations.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AvailabilityDeclaration'
+
+  /schedules/{scheduleId}/availability/me:
+    parameters:
+      - $ref: '#/components/parameters/ScheduleId'
+    get:
+      tags: [Availability]
+      operationId: getMyAvailability
+      summary: Get current doctor's availability declaration for a schedule.
+      x-roles: [DOCTOR]
+      responses:
+        '200':
+          description: Availability declaration.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AvailabilityDeclaration'
+    put:
+      tags: [Availability]
+      operationId: submitMyAvailability
+      summary: Create or replace current doctor's availability before the deadline.
+      x-roles: [DOCTOR]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AvailabilitySubmissionRequest'
+      responses:
+        '200':
+          description: Availability saved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AvailabilityDeclaration'
+        '409':
+          description: Availability deadline has passed or schedule is not editable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /schedules/{scheduleId}/availability/{doctorProfileId}:
+    parameters:
+      - $ref: '#/components/parameters/ScheduleId'
+      - $ref: '#/components/parameters/DoctorProfileId'
+    get:
+      tags: [Availability]
+      operationId: getDoctorAvailabilityForSchedule
+      summary: Get doctor's availability declaration for a schedule.
+      x-roles: [COORDINATOR]
+      responses:
+        '200':
+          description: Availability declaration.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AvailabilityDeclaration'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /schedules/{scheduleId}/shifts:
+    parameters:
+      - $ref: '#/components/parameters/ScheduleId'
+    get:
+      tags: [Shifts]
+      operationId: listScheduleShifts
+      summary: List 24-hour shifts for a schedule.
+      x-roles: [ADMIN, COORDINATOR, DOCTOR]
+      responses:
+        '200':
+          description: Shifts.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Shift'
+    post:
+      tags: [Shifts]
+      operationId: createScheduleShift
+      summary: Create a 24-hour shift in an editable schedule.
+      x-roles: [COORDINATOR]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShiftCreateRequest'
+      responses:
+        '201':
+          description: Shift created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shift'
+
+  /schedules/{scheduleId}/shifts/{shiftId}:
+    parameters:
+      - $ref: '#/components/parameters/ScheduleId'
+      - $ref: '#/components/parameters/ShiftId'
+    patch:
+      tags: [Shifts]
+      operationId: updateScheduleShift
+      summary: Update shift metadata while schedule is editable.
+      x-roles: [COORDINATOR]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShiftUpdateRequest'
+      responses:
+        '200':
+          description: Updated shift.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shift'
+
+  /schedules/{scheduleId}/assignments:
+    parameters:
+      - $ref: '#/components/parameters/ScheduleId'
+    get:
+      tags: [Assignments]
+      operationId: listScheduleAssignments
+      summary: List assignments for a schedule.
+      x-roles: [ADMIN, COORDINATOR, DOCTOR]
+      parameters:
+        - name: doctorProfileId
+          in: query
+          schema:
+            $ref: '#/components/schemas/Id'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/AssignmentStatus'
+      responses:
+        '200':
+          description: Assignments.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Assignment'
+    post:
+      tags: [Assignments]
+      operationId: createManualAssignment
+      summary: Assign doctor to shift while schedule is editable.
+      description: Hard constraints are validated synchronously before assignment is accepted.
+      x-roles: [COORDINATOR]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignmentCreateRequest'
+      responses:
+        '201':
+          description: Assignment created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Assignment'
+        '422':
+          description: Assignment violates hard constraints.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResult'
+
+  /schedules/{scheduleId}/assignments/{assignmentId}:
+    parameters:
+      - $ref: '#/components/parameters/ScheduleId'
+      - $ref: '#/components/parameters/AssignmentId'
+    patch:
+      tags: [Assignments]
+      operationId: updateAssignment
+      summary: Update assignment while schedule is editable.
+      x-roles: [COORDINATOR]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignmentUpdateRequest'
+      responses:
+        '200':
+          description: Updated assignment.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Assignment'
+        '422':
+          description: Assignment violates hard constraints.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResult'
+    delete:
+      tags: [Assignments]
+      operationId: cancelAssignment
+      summary: Cancel assignment while schedule is editable.
+      x-roles: [COORDINATOR]
+      responses:
+        '204':
+          description: Assignment cancelled.
+
+  /schedules/{scheduleId}/generate:
+    parameters:
+      - $ref: '#/components/parameters/ScheduleId'
+    post:
+      tags: [Generation]
+      operationId: generateSchedule
+      summary: Run deterministic schedule generator.
+      description: >-
+        Runs a deterministic generation process using availability declarations,
+        hard legal constraints and configured preference categories. If no compliant
+        assignment can be produced, schedule remains DRAFT and a conflict report is created.
+      x-roles: [COORDINATOR]
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateScheduleRequest'
+      responses:
+        '202':
+          description: Generation started.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerationRun'
+        '409':
+          description: Schedule status does not allow generation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /generation-runs/{generationRunId}:
+    parameters:
+      - $ref: '#/components/parameters/GenerationRunId'
+    get:
+      tags: [Generation]
+      operationId: getGenerationRun
+      summary: Get generation run status and result.
+      x-roles: [COORDINATOR]
+      responses:
+        '200':
+          description: Generation run.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerationRun'
+
+  /generation-runs/{generationRunId}/conflict-report:
+    parameters:
+      - $ref: '#/components/parameters/GenerationRunId'
+    get:
+      tags: [Generation]
+      operationId: getGenerationConflictReport
+      summary: Get conflict report created by failed generation.
+      x-roles: [COORDINATOR]
+      responses:
+        '200':
+          description: Conflict report.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConflictReport'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /schedules/{scheduleId}/validate:
+    parameters:
+      - $ref: '#/components/parameters/ScheduleId'
+    post:
+      tags: [Validation]
+      operationId: validateScheduleOrChange
+      summary: Validate schedule or proposed manual change.
+      x-roles: [COORDINATOR]
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ValidationRequest'
+      responses:
+        '200':
+          description: Validation result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResult'
+
+  /schedules/{scheduleId}/publish:
+    parameters:
+      - $ref: '#/components/parameters/ScheduleId'
+    post:
+      tags: [Schedules]
+      operationId: publishSchedule
+      summary: Publish generated schedule and freeze assignments.
+      x-roles: [COORDINATOR]
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublishScheduleRequest'
+      responses:
+        '200':
+          description: Schedule published.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Schedule'
+        '422':
+          description: Schedule is not compliant and cannot be published.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResult'
+
+  /schedules/{scheduleId}/archive:
+    parameters:
+      - $ref: '#/components/parameters/ScheduleId'
+    post:
+      tags: [Schedules]
+      operationId: archiveSchedule
+      summary: Archive published schedule.
+      x-roles: [COORDINATOR]
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArchiveScheduleRequest'
+      responses:
+        '200':
+          description: Schedule archived.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Schedule'
+
+  /schedules/{scheduleId}/leave-requests:
+    parameters:
+      - $ref: '#/components/parameters/ScheduleId'
+    get:
+      tags: [LeaveRequests]
+      operationId: listScheduleLeaveRequests
+      summary: List leave requests for a schedule.
+      x-roles: [COORDINATOR, DOCTOR]
+      parameters:
+        - name: doctorProfileId
+          in: query
+          schema:
+            $ref: '#/components/schemas/Id'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/LeaveRequestStatus'
+      responses:
+        '200':
+          description: Leave requests.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LeaveRequest'
+    post:
+      tags: [LeaveRequests]
+      operationId: createLeaveRequest
+      summary: Submit leave request for current doctor.
+      x-roles: [DOCTOR]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LeaveRequestCreateRequest'
+      responses:
+        '201':
+          description: Leave request submitted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeaveRequest'
+
+  /leave-requests/{leaveRequestId}/approve:
+    parameters:
+      - $ref: '#/components/parameters/LeaveRequestId'
+    post:
+      tags: [LeaveRequests]
+      operationId: approveLeaveRequest
+      summary: Approve leave request.
+      x-roles: [COORDINATOR]
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LeaveDecisionRequest'
+      responses:
+        '200':
+          description: Leave request approved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeaveRequest'
+
+  /leave-requests/{leaveRequestId}/reject:
+    parameters:
+      - $ref: '#/components/parameters/LeaveRequestId'
+    post:
+      tags: [LeaveRequests]
+      operationId: rejectLeaveRequest
+      summary: Reject leave request.
+      x-roles: [COORDINATOR]
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LeaveDecisionRequest'
+      responses:
+        '200':
+          description: Leave request rejected.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeaveRequest'
+
+  /leave-requests/{leaveRequestId}/cancel:
+    parameters:
+      - $ref: '#/components/parameters/LeaveRequestId'
+    post:
+      tags: [LeaveRequests]
+      operationId: cancelLeaveRequest
+      summary: Cancel own leave request.
+      x-roles: [DOCTOR]
+      responses:
+        '200':
+          description: Leave request cancelled.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeaveRequest'
+
+  /schedules/{scheduleId}/swap-requests:
+    parameters:
+      - $ref: '#/components/parameters/ScheduleId'
+    get:
+      tags: [Swaps]
+      operationId: listScheduleSwapRequests
+      summary: List swap requests for a published schedule.
+      x-roles: [COORDINATOR, DOCTOR]
+      parameters:
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/SwapRequestStatus'
+        - name: doctorProfileId
+          in: query
+          schema:
+            $ref: '#/components/schemas/Id'
+      responses:
+        '200':
+          description: Swap requests.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SwapRequest'
+    post:
+      tags: [Swaps]
+      operationId: createSwapRequest
+      summary: Create swap request after schedule publication.
+      x-roles: [DOCTOR]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SwapRequestCreateRequest'
+      responses:
+        '201':
+          description: Swap request created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SwapRequest'
+        '409':
+          description: Schedule is not published or assignment is not swappable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /swap-requests/{swapRequestId}:
+    parameters:
+      - $ref: '#/components/parameters/SwapRequestId'
+    get:
+      tags: [Swaps]
+      operationId: getSwapRequest
+      summary: Get swap request details.
+      x-roles: [COORDINATOR, DOCTOR]
+      responses:
+        '200':
+          description: Swap request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SwapRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /swap-requests/{swapRequestId}/respond:
+    parameters:
+      - $ref: '#/components/parameters/SwapRequestId'
+    post:
+      tags: [Swaps]
+      operationId: respondToSwapRequest
+      summary: Candidate doctor accepts or rejects a swap proposal.
+      x-roles: [DOCTOR]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SwapResponseRequest'
+      responses:
+        '200':
+          description: Updated swap request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SwapRequest'
+
+  /swap-requests/{swapRequestId}/validate:
+    parameters:
+      - $ref: '#/components/parameters/SwapRequestId'
+    post:
+      tags: [Swaps]
+      operationId: validateSwapRequest
+      summary: Validate accepted swap against hard constraints.
+      x-roles: [COORDINATOR]
+      responses:
+        '200':
+          description: Swap validation result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResult'
+
+  /swap-requests/{swapRequestId}/approve:
+    parameters:
+      - $ref: '#/components/parameters/SwapRequestId'
+    post:
+      tags: [Swaps]
+      operationId: approveSwapRequest
+      summary: Coordinator approves compliant swap and updates schedule.
+      x-roles: [COORDINATOR]
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SwapCoordinatorDecisionRequest'
+      responses:
+        '200':
+          description: Swap approved and schedule updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SwapRequest'
+        '422':
+          description: Swap violates hard constraints and cannot be approved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResult'
+
+  /swap-requests/{swapRequestId}/reject:
+    parameters:
+      - $ref: '#/components/parameters/SwapRequestId'
+    post:
+      tags: [Swaps]
+      operationId: rejectSwapRequest
+      summary: Coordinator rejects swap request.
+      x-roles: [COORDINATOR]
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SwapCoordinatorDecisionRequest'
+      responses:
+        '200':
+          description: Swap rejected.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SwapRequest'
+
+  /schedules/{scheduleId}/metrics:
+    parameters:
+      - $ref: '#/components/parameters/ScheduleId'
+    get:
+      tags: [Metrics]
+      operationId: getScheduleMetrics
+      summary: Return workload, overtime, opt-out and rest-compliance metrics.
+      x-roles: [COORDINATOR]
+      responses:
+        '200':
+          description: Schedule metrics.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduleMetricsResponse'
+
+  /notifications:
+    get:
+      tags: [Notifications]
+      operationId: listMyNotifications
+      summary: List current user's notifications.
+      x-roles: [ADMIN, COORDINATOR, DOCTOR]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/NotificationStatus'
+      responses:
+        '200':
+          description: Notifications.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationListResponse'
+
+  /notifications/{notificationId}/read:
+    parameters:
+      - $ref: '#/components/parameters/NotificationId'
+    post:
+      tags: [Notifications]
+      operationId: markNotificationAsRead
+      summary: Mark notification as read.
+      x-roles: [ADMIN, COORDINATOR, DOCTOR]
+      responses:
+        '200':
+          description: Updated notification.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+
+  /calendar-exports:
+    get:
+      tags: [CalendarExports]
+      operationId: listMyCalendarExports
+      summary: List current doctor's calendar exports.
+      x-roles: [DOCTOR]
+      responses:
+        '200':
+          description: Calendar export subscriptions.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CalendarExport'
+    post:
+      tags: [CalendarExports]
+      operationId: createCalendarExport
+      summary: Create ICS export token for a schedule.
+      x-roles: [DOCTOR]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CalendarExportCreateRequest'
+      responses:
+        '201':
+          description: Calendar export created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalendarExport'
+
+  /calendar-exports/{calendarExportId}:
+    parameters:
+      - $ref: '#/components/parameters/CalendarExportId'
+    delete:
+      tags: [CalendarExports]
+      operationId: revokeCalendarExport
+      summary: Revoke ICS export token.
+      x-roles: [DOCTOR]
+      responses:
+        '204':
+          description: Calendar export revoked.
+
+  /calendar-exports/{token}.ics:
+    parameters:
+      - $ref: '#/components/parameters/IcsToken'
+    get:
+      tags: [CalendarExports]
+      operationId: downloadIcsCalendar
+      security: []
+      summary: Download private ICS calendar using tokenized URL.
+      responses:
+        '200':
+          description: ICS calendar file.
+          content:
+            text/calendar:
+              schema:
+                type: string
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /audit-log:
+    get:
+      tags: [Audit]
+      operationId: listAuditLogEntries
+      summary: List immutable audit log entries.
+      x-roles: [ADMIN, COORDINATOR]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: entityType
+          in: query
+          schema:
+            type: string
+        - name: entityId
+          in: query
+          schema:
+            $ref: '#/components/schemas/Id'
+        - name: actorUserId
+          in: query
+          schema:
+            $ref: '#/components/schemas/Id'
+        - name: from
+          in: query
+          schema:
+            $ref: '#/components/schemas/Timestamp'
+        - name: to
+          in: query
+          schema:
+            $ref: '#/components/schemas/Timestamp'
+      responses:
+        '200':
+          description: Audit log entries.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditLogListResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    LimitParam:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 25
+    UserId:
+      name: userId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Id'
+    DepartmentId:
+      name: departmentId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Id'
+    DoctorProfileId:
+      name: doctorProfileId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Id'
+    InvitationId:
+      name: invitationId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Id'
+    ScheduleId:
+      name: scheduleId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Id'
+    ShiftId:
+      name: shiftId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Id'
+    AssignmentId:
+      name: assignmentId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Id'
+    GenerationRunId:
+      name: generationRunId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Id'
+    LeaveRequestId:
+      name: leaveRequestId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Id'
+    SwapRequestId:
+      name: swapRequestId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Id'
+    NotificationId:
+      name: notificationId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Id'
+    CalendarExportId:
+      name: calendarExportId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/Id'
+    IcsToken:
+      name: token
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 32
+
+  responses:
+    Unauthorized:
+      description: Authentication is missing or invalid.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: Authenticated user does not have the required role or scope.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ValidationError:
+      description: Request validation failed.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    Id:
+      type: string
+      format: uuid
+    Date:
+      type: string
+      format: date
+    Timestamp:
+      type: string
+      format: date-time
+
+    ErrorResponse:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          examples: [VALIDATION_ERROR]
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+
+    PageMeta:
+      type: object
+      required: [page, limit, total]
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+
+    RoleCode:
+      type: string
+      enum: [ADMIN, COORDINATOR, DOCTOR]
+    UserStatus:
+      type: string
+      enum: [ACTIVE, INVITED, SUSPENDED, DEACTIVATED]
+    ScheduleStatus:
+      type: string
+      enum: [DRAFT, GENERATED, PUBLISHED, ARCHIVED]
+    ScheduleParticipantStatus:
+      type: string
+      enum: [ACTIVE, REMOVED]
+    ShiftStatus:
+      type: string
+      enum: [UNASSIGNED, ASSIGNED, CONFLICTED]
+    AssignmentStatus:
+      type: string
+      enum: [PROPOSED, CONFIRMED, REPLACED, CANCELLED]
+    AssignmentSource:
+      type: string
+      enum: [GENERATED, MANUAL, SWAP]
+    AvailabilityDeclarationStatus:
+      type: string
+      enum: [DRAFT, SUBMITTED, LOCKED]
+    AvailabilityType:
+      type: string
+      enum: [AVAILABLE, UNAVAILABLE, PREFERRED, NOT_PREFERRED]
+    LeaveRequestStatus:
+      type: string
+      enum: [SUBMITTED, APPROVED, REJECTED, CANCELLED]
+    ConstraintType:
+      type: string
+      enum: [HARD, SOFT]
+    ConstraintSeverity:
+      type: string
+      enum: [INFO, WARNING, BLOCKING]
+    GenerationRunStatus:
+      type: string
+      enum: [RUNNING, SUCCEEDED, FAILED]
+    SwapRequestStatus:
+      type: string
+      enum:
+        - PENDING_DOCTOR_ACCEPTANCE
+        - REJECTED_BY_DOCTOR
+        - ACCEPTED_BY_DOCTORS
+        - REJECTED_BY_SYSTEM
+        - PENDING_COORDINATOR_APPROVAL
+        - APPROVED
+        - REJECTED_BY_COORDINATOR
+    SwapCandidateResponseStatus:
+      type: string
+      enum: [PENDING, ACCEPTED, REJECTED, EXPIRED]
+    InvitationStatus:
+      type: string
+      enum: [PENDING, ACCEPTED, EXPIRED, REVOKED]
+    NotificationChannel:
+      type: string
+      enum: [EMAIL, PUSH]
+    NotificationStatus:
+      type: string
+      enum: [PENDING, SENT, FAILED, READ]
+    VerificationStatus:
+      type: string
+      enum: [VALID, EXPIRED, UNKNOWN]
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+          minLength: 8
+    RefreshTokenRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+    AuthTokenResponse:
+      type: object
+      required: [accessToken, refreshToken, expiresIn, user]
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        expiresIn:
+          type: integer
+          description: Access token TTL in seconds.
+        user:
+          $ref: '#/components/schemas/CurrentUser'
+    CurrentUser:
+      type: object
+      required: [id, email, firstName, lastName, roles]
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        email:
+          type: string
+          format: email
+        firstName:
+          type: string
+        lastName:
+          type: string
+        doctorProfileId:
+          $ref: '#/components/schemas/Id'
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserRole'
+
+    User:
+      type: object
+      required: [id, email, firstName, lastName, status, roles, createdAt]
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        email:
+          type: string
+          format: email
+        firstName:
+          type: string
+        lastName:
+          type: string
+        status:
+          $ref: '#/components/schemas/UserStatus'
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserRole'
+        createdAt:
+          $ref: '#/components/schemas/Timestamp'
+        lastLoginAt:
+          $ref: '#/components/schemas/Timestamp'
+    UserCreateRequest:
+      type: object
+      required: [email, firstName, lastName, roles]
+      properties:
+        email:
+          type: string
+          format: email
+        firstName:
+          type: string
+        lastName:
+          type: string
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserRoleInput'
+    UserUpdateRequest:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        status:
+          $ref: '#/components/schemas/UserStatus'
+    UserRole:
+      type: object
+      required: [role, scope, assignedAt]
+      properties:
+        role:
+          $ref: '#/components/schemas/RoleCode'
+        scope:
+          type: string
+          enum: [GLOBAL, DEPARTMENT]
+        departmentId:
+          $ref: '#/components/schemas/Id'
+        assignedAt:
+          $ref: '#/components/schemas/Timestamp'
+    UserRoleInput:
+      type: object
+      required: [role, scope]
+      properties:
+        role:
+          $ref: '#/components/schemas/RoleCode'
+        scope:
+          type: string
+          enum: [GLOBAL, DEPARTMENT]
+        departmentId:
+          $ref: '#/components/schemas/Id'
+    UserRoleReplacementRequest:
+      type: object
+      required: [roles]
+      properties:
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserRoleInput'
+    UserListResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        meta:
+          $ref: '#/components/schemas/PageMeta'
+
+    Department:
+      type: object
+      required: [id, name, hospitalName, timezone, active, createdAt]
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        name:
+          type: string
+        hospitalName:
+          type: string
+        timezone:
+          type: string
+          examples: [Europe/Warsaw]
+        active:
+          type: boolean
+        createdAt:
+          $ref: '#/components/schemas/Timestamp'
+    DepartmentCreateRequest:
+      type: object
+      required: [name, hospitalName, timezone]
+      properties:
+        name:
+          type: string
+        hospitalName:
+          type: string
+        timezone:
+          type: string
+          default: Europe/Warsaw
+    DepartmentUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        hospitalName:
+          type: string
+        timezone:
+          type: string
+        active:
+          type: boolean
+    DepartmentListResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Department'
+        meta:
+          $ref: '#/components/schemas/PageMeta'
+    CoordinatorAssignmentRequest:
+      type: object
+      required: [coordinatorUserId, validFrom]
+      properties:
+        coordinatorUserId:
+          $ref: '#/components/schemas/Id'
+        validFrom:
+          $ref: '#/components/schemas/Date'
+    CoordinatorAssignment:
+      type: object
+      required: [id, departmentId, coordinatorUserId, validFrom, active]
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        departmentId:
+          $ref: '#/components/schemas/Id'
+        coordinatorUserId:
+          $ref: '#/components/schemas/Id'
+        validFrom:
+          $ref: '#/components/schemas/Date'
+        validTo:
+          $ref: '#/components/schemas/Date'
+        active:
+          type: boolean
+
+    DoctorProfile:
+      type: object
+      required: [id, userId, licenseNumber, employmentType, optOutSigned, weeklyHourLimitMinutes, active]
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        userId:
+          $ref: '#/components/schemas/Id'
+        licenseNumber:
+          type: string
+        employmentType:
+          type: string
+          enum: [EMPLOYMENT_CONTRACT, B2B, CIVIL_CONTRACT, OTHER]
+        optOutSigned:
+          type: boolean
+        weeklyHourLimitMinutes:
+          type: integer
+          description: Legal weekly limit configured for this doctor.
+        active:
+          type: boolean
+        qualifications:
+          type: array
+          items:
+            $ref: '#/components/schemas/DoctorQualification'
+    DoctorProfileCreateRequest:
+      type: object
+      required: [userId, licenseNumber, employmentType, weeklyHourLimitMinutes]
+      properties:
+        userId:
+          $ref: '#/components/schemas/Id'
+        licenseNumber:
+          type: string
+        employmentType:
+          type: string
+          enum: [EMPLOYMENT_CONTRACT, B2B, CIVIL_CONTRACT, OTHER]
+        optOutSigned:
+          type: boolean
+          default: false
+        weeklyHourLimitMinutes:
+          type: integer
+    DoctorProfileUpdateRequest:
+      type: object
+      properties:
+        licenseNumber:
+          type: string
+        employmentType:
+          type: string
+          enum: [EMPLOYMENT_CONTRACT, B2B, CIVIL_CONTRACT, OTHER]
+        optOutSigned:
+          type: boolean
+        weeklyHourLimitMinutes:
+          type: integer
+        active:
+          type: boolean
+    DoctorProfileListResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/DoctorProfile'
+        meta:
+          $ref: '#/components/schemas/PageMeta'
+    Qualification:
+      type: object
+      required: [id, code, name, active]
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        code:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        active:
+          type: boolean
+    DoctorQualification:
+      type: object
+      required: [id, doctorProfileId, qualificationId, validFrom, verificationStatus]
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        doctorProfileId:
+          $ref: '#/components/schemas/Id'
+        qualificationId:
+          $ref: '#/components/schemas/Id'
+        validFrom:
+          $ref: '#/components/schemas/Date'
+        validTo:
+          $ref: '#/components/schemas/Date'
+        verificationStatus:
+          $ref: '#/components/schemas/VerificationStatus'
+
+    DoctorInvitation:
+      type: object
+      required: [id, departmentId, email, status, expiresAt, invitedByUserId]
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        departmentId:
+          $ref: '#/components/schemas/Id'
+        scheduleId:
+          $ref: '#/components/schemas/Id'
+        invitedByUserId:
+          $ref: '#/components/schemas/Id'
+        email:
+          type: string
+          format: email
+        status:
+          $ref: '#/components/schemas/InvitationStatus'
+        expiresAt:
+          $ref: '#/components/schemas/Timestamp'
+        acceptedAt:
+          $ref: '#/components/schemas/Timestamp'
+    DoctorInvitationCreateRequest:
+      type: object
+      required: [departmentId, email]
+      properties:
+        departmentId:
+          $ref: '#/components/schemas/Id'
+        scheduleId:
+          $ref: '#/components/schemas/Id'
+        email:
+          type: string
+          format: email
+        firstName:
+          type: string
+        lastName:
+          type: string
+    AcceptInvitationRequest:
+      type: object
+      required: [token, firstName, lastName, password]
+      properties:
+        token:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        password:
+          type: string
+          format: password
+          minLength: 8
+    DoctorInvitationListResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/DoctorInvitation'
+        meta:
+          $ref: '#/components/schemas/PageMeta'
+
+    PreferenceCategory:
+      type: object
+      required: [id, code, name, priority, active]
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        code:
+          type: string
+          enum: [I, II, III]
+        name:
+          type: string
+        priority:
+          type: integer
+        description:
+          type: string
+        active:
+          type: boolean
+    PreferenceCategoryCreateRequest:
+      type: object
+      required: [code, name, priority]
+      properties:
+        code:
+          type: string
+          enum: [I, II, III]
+        name:
+          type: string
+        priority:
+          type: integer
+        description:
+          type: string
+    PreferenceCalendarDay:
+      type: object
+      required: [id, date, categoryId, label]
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        date:
+          $ref: '#/components/schemas/Date'
+        categoryId:
+          $ref: '#/components/schemas/Id'
+        label:
+          type: string
+        recurrenceRule:
+          type: string
+
+    ConstraintRule:
+      type: object
+      required: [id, code, name, type, severity, active]
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        code:
+          type: string
+          examples: [MIN_REST_11H]
+        name:
+          type: string
+        type:
+          $ref: '#/components/schemas/ConstraintType'
+        severity:
+          $ref: '#/components/schemas/ConstraintSeverity'
+        active:
+          type: boolean
+        description:
+          type: string
+
+    Schedule:
+      type: object
+      required: [id, departmentId, coordinatorUserId, periodStart, periodEnd, availabilityDeadline, status]
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        departmentId:
+          $ref: '#/components/schemas/Id'
+        coordinatorUserId:
+          $ref: '#/components/schemas/Id'
+        periodStart:
+          $ref: '#/components/schemas/Date'
+        periodEnd:
+          $ref: '#/components/schemas/Date'
+        availabilityDeadline:
+          $ref: '#/components/schemas/Timestamp'
+        status:
+          $ref: '#/components/schemas/ScheduleStatus'
+        publishedAt:
+          $ref: '#/components/schemas/Timestamp'
+        archivedAt:
+          $ref: '#/components/schemas/Timestamp'
+        createdAt:
+          $ref: '#/components/schemas/Timestamp'
+    ScheduleCreateRequest:
+      type: object
+      required: [departmentId, periodStart, periodEnd, availabilityDeadline, participantDoctorProfileIds]
+      properties:
+        departmentId:
+          $ref: '#/components/schemas/Id'
+        periodStart:
+          $ref: '#/components/schemas/Date'
+        periodEnd:
+          $ref: '#/components/schemas/Date'
+        availabilityDeadline:
+          $ref: '#/components/schemas/Timestamp'
+        participantDoctorProfileIds:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/Id'
+        requiredQualificationId:
+          $ref: '#/components/schemas/Id'
+    ScheduleUpdateRequest:
+      type: object
+      properties:
+        availabilityDeadline:
+          $ref: '#/components/schemas/Timestamp'
+        periodStart:
+          $ref: '#/components/schemas/Date'
+        periodEnd:
+          $ref: '#/components/schemas/Date'
+    ScheduleListResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Schedule'
+        meta:
+          $ref: '#/components/schemas/PageMeta'
+    ScheduleParticipant:
+      type: object
+      required: [id, scheduleId, doctorProfileId, status, addedAt]
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        scheduleId:
+          $ref: '#/components/schemas/Id'
+        doctorProfileId:
+          $ref: '#/components/schemas/Id'
+        status:
+          $ref: '#/components/schemas/ScheduleParticipantStatus'
+        addedAt:
+          $ref: '#/components/schemas/Timestamp'
+        removedAt:
+          $ref: '#/components/schemas/Timestamp'
+    ScheduleParticipantCreateRequest:
+      type: object
+      required: [doctorProfileId]
+      properties:
+        doctorProfileId:
+          $ref: '#/components/schemas/Id'
+
+    Shift:
+      type: object
+      required: [id, scheduleId, date, startsAt, endsAt, status]
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        scheduleId:
+          $ref: '#/components/schemas/Id'
+        date:
+          $ref: '#/components/schemas/Date'
+        startsAt:
+          $ref: '#/components/schemas/Timestamp'
+        endsAt:
+          $ref: '#/components/schemas/Timestamp'
+        requiredQualificationId:
+          $ref: '#/components/schemas/Id'
+        status:
+          $ref: '#/components/schemas/ShiftStatus'
+    ShiftCreateRequest:
+      type: object
+      required: [date]
+      properties:
+        date:
+          $ref: '#/components/schemas/Date'
+        requiredQualificationId:
+          $ref: '#/components/schemas/Id'
+    ShiftUpdateRequest:
+      type: object
+      properties:
+        requiredQualificationId:
+          $ref: '#/components/schemas/Id'
+        status:
+          $ref: '#/components/schemas/ShiftStatus'
+
+    Assignment:
+      type: object
+      required: [id, scheduleId, shiftId, doctorProfileId, status, source, createdAt]
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        scheduleId:
+          $ref: '#/components/schemas/Id'
+        shiftId:
+          $ref: '#/components/schemas/Id'
+        doctorProfileId:
+          $ref: '#/components/schemas/Id'
+        status:
+          $ref: '#/components/schemas/AssignmentStatus'
+        source:
+          $ref: '#/components/schemas/AssignmentSource'
+        createdAt:
+          $ref: '#/components/schemas/Timestamp'
+        confirmedAt:
+          $ref: '#/components/schemas/Timestamp'
+    AssignmentCreateRequest:
+      type: object
+      required: [shiftId, doctorProfileId]
+      properties:
+        shiftId:
+          $ref: '#/components/schemas/Id'
+        doctorProfileId:
+          $ref: '#/components/schemas/Id'
+        overrideSoftConstraintsReason:
+          type: string
+          description: Required when coordinator intentionally overrides soft preferences.
+    AssignmentUpdateRequest:
+      type: object
+      properties:
+        doctorProfileId:
+          $ref: '#/components/schemas/Id'
+        status:
+          $ref: '#/components/schemas/AssignmentStatus'
+        overrideSoftConstraintsReason:
+          type: string
+
+    AvailabilityDeclaration:
+      type: object
+      required: [id, scheduleId, doctorProfileId, status, days]
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        scheduleId:
+          $ref: '#/components/schemas/Id'
+        doctorProfileId:
+          $ref: '#/components/schemas/Id'
+        status:
+          $ref: '#/components/schemas/AvailabilityDeclarationStatus'
+        submittedAt:
+          $ref: '#/components/schemas/Timestamp'
+        lockedAt:
+          $ref: '#/components/schemas/Timestamp'
+        days:
+          type: array
+          items:
+            $ref: '#/components/schemas/AvailabilityDay'
+    AvailabilityDay:
+      type: object
+      required: [id, date, availabilityType]
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        date:
+          $ref: '#/components/schemas/Date'
+        availabilityType:
+          $ref: '#/components/schemas/AvailabilityType'
+        preferenceCategoryId:
+          $ref: '#/components/schemas/Id'
+        comment:
+          type: string
+    AvailabilitySubmissionRequest:
+      type: object
+      required: [days]
+      properties:
+        days:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/AvailabilityDayInput'
+    AvailabilityDayInput:
+      type: object
+      required: [date, availabilityType]
+      properties:
+        date:
+          $ref: '#/components/schemas/Date'
+        availabilityType:
+          $ref: '#/components/schemas/AvailabilityType'
+        preferenceCategoryId:
+          $ref: '#/components/schemas/Id'
+        comment:
+          type: string
+          maxLength: 500
+
+    LeaveRequest:
+      type: object
+      required: [id, scheduleId, doctorProfileId, dateFrom, dateTo, status]
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        scheduleId:
+          $ref: '#/components/schemas/Id'
+        doctorProfileId:
+          $ref: '#/components/schemas/Id'
+        dateFrom:
+          $ref: '#/components/schemas/Date'
+        dateTo:
+          $ref: '#/components/schemas/Date'
+        status:
+          $ref: '#/components/schemas/LeaveRequestStatus'
+        reason:
+          type: string
+        reviewedByUserId:
+          $ref: '#/components/schemas/Id'
+        reviewedAt:
+          $ref: '#/components/schemas/Timestamp'
+    LeaveRequestCreateRequest:
+      type: object
+      required: [dateFrom, dateTo]
+      properties:
+        dateFrom:
+          $ref: '#/components/schemas/Date'
+        dateTo:
+          $ref: '#/components/schemas/Date'
+        reason:
+          type: string
+          maxLength: 1000
+    LeaveDecisionRequest:
+      type: object
+      properties:
+        comment:
+          type: string
+          maxLength: 1000
+
+    GenerateScheduleRequest:
+      type: object
+      properties:
+        algorithmVersion:
+          type: string
+        dryRun:
+          type: boolean
+          default: false
+    GenerationRun:
+      type: object
+      required: [id, scheduleId, startedByUserId, startedAt, status, algorithmVersion]
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        scheduleId:
+          $ref: '#/components/schemas/Id'
+        startedByUserId:
+          $ref: '#/components/schemas/Id'
+        startedAt:
+          $ref: '#/components/schemas/Timestamp'
+        finishedAt:
+          $ref: '#/components/schemas/Timestamp'
+        status:
+          $ref: '#/components/schemas/GenerationRunStatus'
+        algorithmVersion:
+          type: string
+        createdAssignmentCount:
+          type: integer
+        conflictReportId:
+          $ref: '#/components/schemas/Id'
+    ConflictReport:
+      type: object
+      required: [id, scheduleId, generationRunId, createdAt, summary, items]
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        scheduleId:
+          $ref: '#/components/schemas/Id'
+        generationRunId:
+          $ref: '#/components/schemas/Id'
+        createdAt:
+          $ref: '#/components/schemas/Timestamp'
+        summary:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConflictItem'
+    ConflictItem:
+      type: object
+      required: [id, reasonCode, description]
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        shiftId:
+          $ref: '#/components/schemas/Id'
+        reasonCode:
+          type: string
+          examples: [NO_AVAILABLE_DOCTOR]
+        description:
+          type: string
+
+    ValidationRequest:
+      type: object
+      properties:
+        proposedAssignment:
+          $ref: '#/components/schemas/ManualAssignmentValidationInput'
+    ManualAssignmentValidationInput:
+      type: object
+      required: [shiftId, doctorProfileId]
+      properties:
+        shiftId:
+          $ref: '#/components/schemas/Id'
+        doctorProfileId:
+          $ref: '#/components/schemas/Id'
+    ValidationResult:
+      type: object
+      required: [id, targetType, targetId, isCompliant, validatedAt, violations]
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        targetType:
+          type: string
+          enum: [SCHEDULE, ASSIGNMENT, SWAP_REQUEST]
+        targetId:
+          $ref: '#/components/schemas/Id'
+        isCompliant:
+          type: boolean
+        validatedAt:
+          $ref: '#/components/schemas/Timestamp'
+        violations:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConstraintViolation'
+    ConstraintViolation:
+      type: object
+      required: [id, constraintRuleId, severity, message]
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        constraintRuleId:
+          $ref: '#/components/schemas/Id'
+        severity:
+          $ref: '#/components/schemas/ConstraintSeverity'
+        message:
+          type: string
+        doctorProfileId:
+          $ref: '#/components/schemas/Id'
+        shiftId:
+          $ref: '#/components/schemas/Id'
+
+    PublishScheduleRequest:
+      type: object
+      properties:
+        comment:
+          type: string
+          maxLength: 1000
+    ArchiveScheduleRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+          maxLength: 1000
+
+    SwapRequest:
+      type: object
+      required: [id, scheduleId, requestingDoctorId, sourceAssignmentId, status, candidates, createdAt, updatedAt]
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        scheduleId:
+          $ref: '#/components/schemas/Id'
+        requestingDoctorId:
+          $ref: '#/components/schemas/Id'
+        sourceAssignmentId:
+          $ref: '#/components/schemas/Id'
+        targetDoctorId:
+          $ref: '#/components/schemas/Id'
+        targetAssignmentId:
+          $ref: '#/components/schemas/Id'
+        status:
+          $ref: '#/components/schemas/SwapRequestStatus'
+        candidates:
+          type: array
+          items:
+            $ref: '#/components/schemas/SwapCandidate'
+        validationResult:
+          $ref: '#/components/schemas/ValidationResult'
+        approval:
+          $ref: '#/components/schemas/SwapApproval'
+        createdAt:
+          $ref: '#/components/schemas/Timestamp'
+        updatedAt:
+          $ref: '#/components/schemas/Timestamp'
+    SwapRequestCreateRequest:
+      type: object
+      required: [sourceAssignmentId, candidates]
+      properties:
+        sourceAssignmentId:
+          $ref: '#/components/schemas/Id'
+        targetAssignmentId:
+          $ref: '#/components/schemas/Id'
+          description: Optional direct assignment-for-assignment exchange.
+        candidates:
+          type: array
+          minItems: 1
+          description: One or more candidate doctors; first accepted candidate wins.
+          items:
+            type: object
+            required: [doctorProfileId]
+            properties:
+              doctorProfileId:
+                $ref: '#/components/schemas/Id'
+              assignmentId:
+                $ref: '#/components/schemas/Id'
+        message:
+          type: string
+          maxLength: 1000
+    SwapCandidate:
+      type: object
+      required: [id, swapRequestId, doctorProfileId, responseStatus]
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        swapRequestId:
+          $ref: '#/components/schemas/Id'
+        doctorProfileId:
+          $ref: '#/components/schemas/Id'
+        assignmentId:
+          $ref: '#/components/schemas/Id'
+        responseStatus:
+          $ref: '#/components/schemas/SwapCandidateResponseStatus'
+        respondedAt:
+          $ref: '#/components/schemas/Timestamp'
+    SwapResponseRequest:
+      type: object
+      required: [decision]
+      properties:
+        decision:
+          type: string
+          enum: [ACCEPT, REJECT]
+        comment:
+          type: string
+          maxLength: 1000
+    SwapCoordinatorDecisionRequest:
+      type: object
+      properties:
+        comment:
+          type: string
+          maxLength: 1000
+    SwapApproval:
+      type: object
+      required: [id, swapRequestId, coordinatorUserId, decision, decidedAt]
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        swapRequestId:
+          $ref: '#/components/schemas/Id'
+        coordinatorUserId:
+          $ref: '#/components/schemas/Id'
+        decision:
+          type: string
+          enum: [APPROVED, REJECTED]
+        comment:
+          type: string
+        decidedAt:
+          $ref: '#/components/schemas/Timestamp'
+
+    ScheduleMetricsResponse:
+      type: object
+      required: [scheduleId, generatedAt, doctorMetrics, summary]
+      properties:
+        scheduleId:
+          $ref: '#/components/schemas/Id'
+        generatedAt:
+          $ref: '#/components/schemas/Timestamp'
+        summary:
+          type: object
+          required: [assignedShiftCount, unassignedShiftCount, violationCount]
+          properties:
+            assignedShiftCount:
+              type: integer
+            unassignedShiftCount:
+              type: integer
+            violationCount:
+              type: integer
+            averageDutiesPerDoctor:
+              type: number
+        doctorMetrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/DoctorScheduleMetric'
+    DoctorScheduleMetric:
+      type: object
+      required: [doctorProfileId, assignmentCount, totalDutyMinutes, optOutUsed]
+      properties:
+        doctorProfileId:
+          $ref: '#/components/schemas/Id'
+        assignmentCount:
+          type: integer
+        categoryICount:
+          type: integer
+        categoryIICount:
+          type: integer
+        categoryIIICount:
+          type: integer
+        totalDutyMinutes:
+          type: integer
+        overtimeMinutes:
+          type: integer
+        optOutUsed:
+          type: boolean
+        restComplianceStatus:
+          type: string
+          enum: [COMPLIANT, WARNING, VIOLATION]
+
+    Notification:
+      type: object
+      required: [id, recipientUserId, channel, type, title, body, status]
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        recipientUserId:
+          $ref: '#/components/schemas/Id'
+        channel:
+          $ref: '#/components/schemas/NotificationChannel'
+        type:
+          type: string
+          examples: [SCHEDULE_PUBLISHED]
+        title:
+          type: string
+        body:
+          type: string
+        status:
+          $ref: '#/components/schemas/NotificationStatus'
+        sentAt:
+          $ref: '#/components/schemas/Timestamp'
+    NotificationListResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
+        meta:
+          $ref: '#/components/schemas/PageMeta'
+
+    CalendarExport:
+      type: object
+      required: [id, doctorProfileId, scheduleId, enabled, icsUrl]
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        doctorProfileId:
+          $ref: '#/components/schemas/Id'
+        scheduleId:
+          $ref: '#/components/schemas/Id'
+        enabled:
+          type: boolean
+        icsUrl:
+          type: string
+          format: uri
+        lastSyncedAt:
+          $ref: '#/components/schemas/Timestamp'
+    CalendarExportCreateRequest:
+      type: object
+      required: [scheduleId]
+      properties:
+        scheduleId:
+          $ref: '#/components/schemas/Id'
+
+    AuditLogEntry:
+      type: object
+      required: [id, actorUserId, actionType, entityType, entityId, timestamp]
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        actorUserId:
+          $ref: '#/components/schemas/Id'
+        actionType:
+          type: string
+          examples: [SCHEDULE_PUBLISHED]
+        entityType:
+          type: string
+          examples: [Schedule]
+        entityId:
+          $ref: '#/components/schemas/Id'
+        timestamp:
+          $ref: '#/components/schemas/Timestamp'
+        payloadBefore:
+          type: object
+          additionalProperties: true
+        payloadAfter:
+          type: object
+          additionalProperties: true
+        reason:
+          type: string
+    AuditLogListResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuditLogEntry'
+        meta:
+          $ref: '#/components/schemas/PageMeta'

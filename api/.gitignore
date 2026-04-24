@@ -1,0 +1,14 @@
+.coverage
+.env
+.pytest_cache/
+.ruff_cache/
+.tox/
+.venv/
+coverage.xml
+build/
+dist/
+htmlcov/
+*.egg-info/
+__pycache__/
+*.py[cod]
+.DS_Store

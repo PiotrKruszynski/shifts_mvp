@@ -1,0 +1,359 @@
+%% ER diagram — Aplikacja do Zarządzania Dyżurami Lekarzy
+%% Źródło: project_asumptions.md, wersja 2026
+
+erDiagram
+    USER ||--o{ USER_ROLE : has
+    ROLE ||--o{ USER_ROLE : assigned_to
+    USER ||--o| DOCTOR_PROFILE : may_have
+    USER ||--o{ COORDINATOR_ASSIGNMENT : coordinates
+    DEPARTMENT ||--o{ COORDINATOR_ASSIGNMENT : has
+    DEPARTMENT ||--o{ SCHEDULE : owns
+    USER ||--o{ SCHEDULE : coordinates
+
+    DOCTOR_PROFILE ||--o{ DOCTOR_QUALIFICATION : has
+    QUALIFICATION ||--o{ DOCTOR_QUALIFICATION : granted_to
+    QUALIFICATION ||--o{ SHIFT : required_by
+
+    DEPARTMENT ||--o{ DOCTOR_INVITATION : receives
+    USER ||--o{ DOCTOR_INVITATION : sends
+
+    SCHEDULE ||--o{ SCHEDULE_PARTICIPANT : includes
+    DOCTOR_PROFILE ||--o{ SCHEDULE_PARTICIPANT : participates
+
+    SCHEDULE ||--o{ SHIFT : contains
+    SCHEDULE ||--o{ ASSIGNMENT : has
+    SHIFT ||--o{ ASSIGNMENT : assigned_by
+    DOCTOR_PROFILE ||--o{ ASSIGNMENT : works
+
+    SCHEDULE ||--o{ AVAILABILITY_DECLARATION : collects
+    DOCTOR_PROFILE ||--o{ AVAILABILITY_DECLARATION : submits
+    AVAILABILITY_DECLARATION ||--o{ AVAILABILITY_DAY : contains
+    PREFERENCE_CATEGORY ||--o{ AVAILABILITY_DAY : classifies
+    PREFERENCE_CATEGORY ||--o{ PREFERENCE_CALENDAR_DAY : defines
+
+    DOCTOR_PROFILE ||--o{ LEAVE_REQUEST : requests
+    SCHEDULE ||--o{ LEAVE_REQUEST : affects
+    USER ||--o{ LEAVE_REQUEST : reviews
+
+    SCHEDULE ||--o{ GENERATION_RUN : generated_by
+    USER ||--o{ GENERATION_RUN : starts
+    GENERATION_RUN ||--o| CONFLICT_REPORT : produces
+    CONFLICT_REPORT ||--o{ CONFLICT_ITEM : contains
+    SHIFT ||--o{ CONFLICT_ITEM : involved_in
+
+    CONSTRAINT_RULE ||--o{ CONSTRAINT_VIOLATION : violated_by
+    VALIDATION_RESULT ||--o{ CONSTRAINT_VIOLATION : contains
+    DOCTOR_PROFILE ||--o{ CONSTRAINT_VIOLATION : involved_in
+    SHIFT ||--o{ CONSTRAINT_VIOLATION : involved_in
+
+    SCHEDULE ||--o{ SWAP_REQUEST : has
+    DOCTOR_PROFILE ||--o{ SWAP_REQUEST : initiates
+    ASSIGNMENT ||--o{ SWAP_REQUEST : source_assignment
+    ASSIGNMENT ||--o{ SWAP_REQUEST : target_assignment
+    SWAP_REQUEST ||--o{ SWAP_CANDIDATE : offers_to
+    DOCTOR_PROFILE ||--o{ SWAP_CANDIDATE : candidate
+    ASSIGNMENT ||--o{ SWAP_CANDIDATE : candidate_assignment
+    SWAP_REQUEST ||--o| SWAP_APPROVAL : decided_by
+    USER ||--o{ SWAP_APPROVAL : approves
+
+    USER ||--o{ AUDIT_LOG_ENTRY : acts
+    USER ||--o{ NOTIFICATION : receives
+    DOCTOR_PROFILE ||--o{ CALENDAR_EXPORT : owns
+    SCHEDULE ||--o{ CALENDAR_EXPORT : exports
+    SCHEDULE ||--o{ DASHBOARD_METRIC_SNAPSHOT : reports
+    DOCTOR_PROFILE ||--o{ DASHBOARD_METRIC_SNAPSHOT : measured_for
+
+    USER {
+        uuid id PK
+        string email UK
+        string firstName
+        string lastName
+        string status "ACTIVE|INVITED|SUSPENDED|DEACTIVATED"
+        datetime createdAt
+        datetime lastLoginAt
+    }
+
+    ROLE {
+        uuid id PK
+        string code UK "ADMIN|COORDINATOR|DOCTOR"
+        string name
+    }
+
+    USER_ROLE {
+        uuid id PK
+        uuid userId FK
+        uuid roleId FK
+        string scope "GLOBAL|DEPARTMENT"
+        uuid departmentId FK "nullable"
+        datetime assignedAt
+    }
+
+    DEPARTMENT {
+        uuid id PK
+        string name
+        string hospitalName
+        string timezone
+        boolean active
+        datetime createdAt
+    }
+
+    COORDINATOR_ASSIGNMENT {
+        uuid id PK
+        uuid coordinatorUserId FK
+        uuid departmentId FK
+        date validFrom
+        date validTo "nullable"
+        boolean active
+    }
+
+    DOCTOR_PROFILE {
+        uuid id PK
+        uuid userId FK
+        string licenseNumber
+        string employmentType
+        boolean optOutSigned
+        integer weeklyHourLimitMinutes
+        boolean active
+    }
+
+    QUALIFICATION {
+        uuid id PK
+        string code UK
+        string name
+        string description
+        boolean active
+    }
+
+    DOCTOR_QUALIFICATION {
+        uuid id PK
+        uuid doctorProfileId FK
+        uuid qualificationId FK
+        date validFrom
+        date validTo "nullable"
+        string verificationStatus "VALID|EXPIRED|UNKNOWN"
+    }
+
+    DOCTOR_INVITATION {
+        uuid id PK
+        uuid departmentId FK
+        uuid invitedByUserId FK
+        string email
+        string status "PENDING|ACCEPTED|EXPIRED|REVOKED"
+        string tokenHash
+        datetime expiresAt
+        datetime acceptedAt "nullable"
+    }
+
+    SCHEDULE {
+        uuid id PK
+        uuid departmentId FK
+        uuid coordinatorUserId FK
+        date periodStart
+        date periodEnd
+        datetime availabilityDeadline
+        string status "DRAFT|GENERATED|PUBLISHED|ARCHIVED"
+        datetime publishedAt "nullable"
+        datetime archivedAt "nullable"
+    }
+
+    SCHEDULE_PARTICIPANT {
+        uuid id PK
+        uuid scheduleId FK
+        uuid doctorProfileId FK
+        string status "ACTIVE|REMOVED"
+        datetime addedAt
+        datetime removedAt "nullable"
+    }
+
+    SHIFT {
+        uuid id PK
+        uuid scheduleId FK
+        date date
+        datetime startsAt
+        datetime endsAt
+        uuid requiredQualificationId FK
+        string status "UNASSIGNED|ASSIGNED|CONFLICTED"
+    }
+
+    ASSIGNMENT {
+        uuid id PK
+        uuid scheduleId FK
+        uuid shiftId FK
+        uuid doctorProfileId FK
+        string status "PROPOSED|CONFIRMED|REPLACED|CANCELLED"
+        string source "GENERATED|MANUAL|SWAP"
+        datetime createdAt
+        datetime confirmedAt "nullable"
+    }
+
+    AVAILABILITY_DECLARATION {
+        uuid id PK
+        uuid scheduleId FK
+        uuid doctorProfileId FK
+        string status "DRAFT|SUBMITTED|LOCKED"
+        datetime submittedAt "nullable"
+        datetime lockedAt "nullable"
+    }
+
+    AVAILABILITY_DAY {
+        uuid id PK
+        uuid availabilityDeclarationId FK
+        date date
+        string availabilityType "AVAILABLE|UNAVAILABLE|PREFERRED|NOT_PREFERRED"
+        uuid preferenceCategoryId FK "nullable"
+        string comment "nullable"
+    }
+
+    PREFERENCE_CATEGORY {
+        uuid id PK
+        string code UK "I|II|III"
+        string name
+        integer priority
+        string description
+        boolean active
+    }
+
+    PREFERENCE_CALENDAR_DAY {
+        uuid id PK
+        date date
+        uuid categoryId FK
+        string label
+        string recurrenceRule "nullable"
+    }
+
+    LEAVE_REQUEST {
+        uuid id PK
+        uuid doctorProfileId FK
+        uuid scheduleId FK
+        date dateFrom
+        date dateTo
+        string status "SUBMITTED|APPROVED|REJECTED|CANCELLED"
+        string reason
+        uuid reviewedByUserId FK "nullable"
+        datetime reviewedAt "nullable"
+    }
+
+    CONSTRAINT_RULE {
+        uuid id PK
+        string code UK
+        string name
+        string type "HARD|SOFT"
+        string severity "INFO|WARNING|BLOCKING"
+        boolean active
+        string description
+    }
+
+    VALIDATION_RESULT {
+        uuid id PK
+        string targetType "SCHEDULE|ASSIGNMENT|SWAP_REQUEST"
+        uuid targetId
+        boolean isCompliant
+        datetime validatedAt
+    }
+
+    CONSTRAINT_VIOLATION {
+        uuid id PK
+        uuid validationResultId FK
+        uuid constraintRuleId FK
+        string severity "INFO|WARNING|BLOCKING"
+        string message
+        uuid doctorProfileId FK "nullable"
+        uuid shiftId FK "nullable"
+    }
+
+    GENERATION_RUN {
+        uuid id PK
+        uuid scheduleId FK
+        uuid startedByUserId FK
+        datetime startedAt
+        datetime finishedAt "nullable"
+        string status "RUNNING|SUCCEEDED|FAILED"
+        string algorithmVersion
+    }
+
+    CONFLICT_REPORT {
+        uuid id PK
+        uuid scheduleId FK
+        uuid generationRunId FK
+        datetime createdAt
+        string summary
+    }
+
+    CONFLICT_ITEM {
+        uuid id PK
+        uuid conflictReportId FK
+        uuid shiftId FK "nullable"
+        string reasonCode
+        string description
+    }
+
+    SWAP_REQUEST {
+        uuid id PK
+        uuid scheduleId FK
+        uuid requestingDoctorId FK
+        uuid sourceAssignmentId FK
+        uuid targetDoctorId FK "nullable"
+        uuid targetAssignmentId FK "nullable"
+        string status
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    SWAP_CANDIDATE {
+        uuid id PK
+        uuid swapRequestId FK
+        uuid doctorProfileId FK
+        uuid assignmentId FK "nullable"
+        string responseStatus "PENDING|ACCEPTED|REJECTED|EXPIRED"
+        datetime respondedAt "nullable"
+    }
+
+    SWAP_APPROVAL {
+        uuid id PK
+        uuid swapRequestId FK
+        uuid coordinatorUserId FK
+        string decision "APPROVED|REJECTED"
+        string comment "nullable"
+        datetime decidedAt
+    }
+
+    AUDIT_LOG_ENTRY {
+        uuid id PK
+        uuid actorUserId FK
+        string actionType
+        string entityType
+        uuid entityId
+        datetime timestamp
+        json payloadBefore
+        json payloadAfter
+        string reason "nullable"
+    }
+
+    NOTIFICATION {
+        uuid id PK
+        uuid recipientUserId FK
+        string channel "EMAIL|PUSH"
+        string type
+        string title
+        string body
+        string status "PENDING|SENT|FAILED|READ"
+        datetime sentAt "nullable"
+    }
+
+    CALENDAR_EXPORT {
+        uuid id PK
+        uuid doctorProfileId FK
+        uuid scheduleId FK
+        string icsTokenHash
+        boolean enabled
+        datetime lastSyncedAt "nullable"
+    }
+
+    DASHBOARD_METRIC_SNAPSHOT {
+        uuid id PK
+        uuid scheduleId FK
+        uuid doctorProfileId FK "nullable"
+        string metricType
+        number value
+        datetime createdAt
+    }

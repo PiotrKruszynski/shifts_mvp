@@ -1,0 +1,29 @@
+requires = [
+    "tox==4.44.0",
+    "tox-uv==1.29.0"
+]
+env_list = ["py314", "coverage"]
+
+[env_run_base]
+package = "editable"
+runner = "uv-venv-lock-runner"
+dependency_groups = ["dev"]
+commands = [
+    ["pytest", "{posargs}"]
+]
+
+[env_run_base.setenv]
+PYTHONPATH = "src"
+
+
+[env.py314]
+basepython = ["python3.14"]
+
+[env.coverage]
+skip_install = true
+dependency_groups = ["dev"]
+commands = [
+    ["coverage", "report"],
+    ["coverage", "xml"],
+    ["coverage", "html"]
+]
