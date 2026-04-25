@@ -41,12 +41,12 @@ DRAFT → GENERATED → PUBLISHED → ARCHIVED
 ```
 shifts_mvp/
 ├── api/                    # Backend FastAPI
+├── docs/
+│   ├── adr/                # Architecture Decision Records
+│   ├── architecture/       # Dokumenty architektury i kontrakty API
+│   └── execution_plans/    # Plany wykonawcze
 ├── pwa/                    # Frontend React PWA
-├── project_asumptions.md   # Założenia projektowe
-├── domain_model.md         # Model domeny
-├── er_diagram.md           # Diagram ER
-├── openapi.yaml            # Specyfikacja API
-└── README.md
+└── README.MD
 ```
 
 ## Instalacja
@@ -76,7 +76,7 @@ npm run dev
 
 ## Dokumentacja
 
-- [Założenia projektowe](project_asumptions.md)
-- [Model domeny](domain_model.md)
-- [Diagram ER](er_diagram.md)
-- [OpenAPI Spec](openapi.yaml)
+- [Założenia projektowe](docs/architecture/project_asumptions.md)
+- [Model domeny](docs/architecture/domain_model.md)
+- [Diagram ER](docs/architecture/er_diagram.md)
+- [OpenAPI Spec](docs/architecture/openapi.yaml)
