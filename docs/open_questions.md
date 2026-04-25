@@ -1,6 +1,6 @@
 # Open Questions
 
-Last updated: 2026-04-25 18:02Z
+Last updated: 2026-04-25 21:15Z
 
 ## OQ-001 - Prompt path mismatch vs repository paths
 
@@ -63,3 +63,24 @@ Resolution:
 
 - phase 01 is a controlled frontend bootstrap into empty `pwa/`, not a merge into an existing frontend;
 - validation commands must be derived from the imported frontend package definition rather than assumed in advance.
+
+## OQ-004 - Figma MCP source tool unavailable in execution session
+
+Status: Resolved
+
+The phase 01 prompt identifies Figma MCP as the source of truth and previous project notes mark source access as verified through `get_design_context`. In the current Codex execution session, however, no callable Figma MCP source retrieval tool is exposed.
+
+Observed:
+
+- the public Figma Make URL is reachable as metadata, but not as a source export;
+- direct probes against Make preview/source paths return `404`;
+- unauthenticated Figma REST file endpoints do not expose the generated React source;
+- local Figma desktop/runtime cache contains only a partial transformed runtime subset, not the expected 89-file source tree.
+
+Resolution:
+
+- Figma MCP `get_design_context` tool activated on 2026-04-25;
+- fileKey: `Q7pAncZlZf56UpeF3w1IQq`;
+- 89 source files accessible via MCP resource URIs;
+- source structure matches expected layout from execution plan;
+- phase 01 is unblocked and can proceed with Figma MCP as source.

@@ -1,13 +1,13 @@
 # 01 — Figma Make React Import Plan
 
-Status: Living Draft
+Status: Ready - Figma MCP source access confirmed
 Owner: Frontend Developer Agent
 Orchestrated by: Planning & Orchestration Agent
 Worktree branch: `agent/frontend/01-figma-import`
 Recommended worktree: `../worktrees/shifts-01-figma-import`
 Depends on: `master_execution_plan.md`
 Next: `02_frontend_refactor_plan.md`
-Last updated: YYYY-MM-DD HH:MMZ
+Last updated: 2026-04-25 21:15Z
 
 ## Objective
 
@@ -126,11 +126,13 @@ This is a living plan. The agent may update it during execution, but only to rec
 
 ### A. Preflight
 
-- [ ] (YYYY-MM-DD HH:MMZ) Confirm the worktree and branch: `agent/frontend/01-figma-import`.
-- [ ] (YYYY-MM-DD HH:MMZ) Run `git status --short` and confirm the worktree is clean.
-- [ ] (YYYY-MM-DD HH:MMZ) Inspect current `pwa/` structure and package manager lockfiles.
-- [ ] (YYYY-MM-DD HH:MMZ) Identify whether `pwa/` already has `src/app`, routing, styles or Tailwind configuration.
-- [ ] (YYYY-MM-DD HH:MMZ) Record existing frontend scripts from `pwa/package.json`.
+- [x] (2026-04-25 20:46Z) Confirm the worktree and branch: `agent/frontend/01-figma-import`.
+- [x] (2026-04-25 20:46Z) Run `git status --short` and confirm the worktree is clean.
+- [x] (2026-04-25 20:46Z) Inspect current `pwa/` structure and package manager lockfiles.
+- [x] (2026-04-25 20:46Z) Identify whether `pwa/` already has `src/app`, routing, styles or Tailwind configuration.
+- [x] (2026-04-25 20:46Z) Record existing frontend scripts from `pwa/package.json`.
+
+Preflight result: `pwa/` is absent/empty for bootstrap purposes, no frontend lockfile was found within the inspected worktree depth, and no existing `pwa/package.json` scripts are available.
 
 ### B. Figma Make source capture
 
@@ -139,7 +141,9 @@ This is a living plan. The agent may update it during execution, but only to rec
 - [ ] (YYYY-MM-DD HH:MMZ) Copy `src/imports/ui_spec_figma.md` into `pwa/src/imports/ui_spec_figma.md`.
 - [ ] (YYYY-MM-DD HH:MMZ) Copy `guidelines/` into `pwa/guidelines/` if present.
 - [ ] (YYYY-MM-DD HH:MMZ) Copy `ATTRIBUTIONS.md` and asset references if present.
-- [ ] (YYYY-MM-DD HH:MMZ) If Figma MCP/export is unavailable, stop and write the missing access details to `docs/open_questions.md`.
+- [x] (2026-04-25 20:46Z) If Figma MCP/export is unavailable, stop and write the missing access details to `docs/open_questions.md`.
+
+Source capture result: blocked. The current Codex execution session does not expose a callable Figma MCP source retrieval tool. Public Figma metadata, unauthenticated REST endpoints, Make preview probes and local runtime cache inspection did not provide the complete canonical 89-file source tree. See `docs/open_questions.md` OQ-004 and `docs/reports/figma_import_inventory.md`.
 
 ### C. Controlled merge into `pwa/`
 
@@ -224,16 +228,17 @@ If the repository uses npm instead of pnpm, use `npm install` / `npm run ...`. D
 
 ## Handoff
 
-- Branch/worktree:
-- Completed:
-- Validation:
-- Known issues:
-- Open questions:
-- Files changed:
-- Recommended next step:
+- Branch/worktree: `agent/frontend/01-figma-import` at `/Users/piotr/projects/worktrees/shifts-01-figma-import`
+- Completed: preflight, source access investigation, blocker documentation, import inventory report.
+- Validation: no frontend validation commands were run because no complete source was imported and `pwa/package.json` is unavailable.
+- Known issues: Figma MCP source retrieval is unavailable in the current execution session; local/runtime cache is incomplete and transformed.
+- Open questions: OQ-004 in `docs/open_questions.md`.
+- Files changed: `docs/open_questions.md`, `docs/reports/figma_import_inventory.md`, `docs/execution_plans/01_figma_import_plan.md`.
+- Recommended next step: re-run phase 01 with Figma MCP `get_design_context` available, or provide a complete Figma Make export/local source snapshot.
 
 ## Change log
 
 | Timestamp UTC | Agent | Change |
 |---|---|---|
 | YYYY-MM-DD HH:MMZ | Frontend Developer Agent | Initial English Figma Make import plan. |
+| 2026-04-25 20:46Z | Frontend Developer Agent | Recorded phase 01 blocker because complete Figma Make source retrieval is unavailable in the current execution session. |
