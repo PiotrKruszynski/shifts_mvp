@@ -1,6 +1,6 @@
 # Open Questions
 
-Last updated: 2026-04-25 21:15Z
+Last updated: 2026-04-25 21:39Z
 
 ## OQ-001 - Prompt path mismatch vs repository paths
 
@@ -84,3 +84,26 @@ Resolution:
 - 89 source files accessible via MCP resource URIs;
 - source structure matches expected layout from execution plan;
 - phase 01 is unblocked and can proceed with Figma MCP as source.
+
+Follow-up:
+
+- OQ-005 records the remaining execution-session blocker: source refs are visible in VS Code/Copilot history, but this Codex session cannot read the complete MCP resource bodies.
+
+## OQ-005 - Codex MCP resource body access for phase 01 import
+
+Status: Open
+
+Phase 01 requires complete Figma Make source file bodies, not only MCP resource references.
+
+Observed on 2026-04-25:
+
+- VS Code/Copilot session history confirms Figma MCP `get_design_context` returned resource refs for fileKey `Q7pAncZlZf56UpeF3w1IQq`;
+- this Codex execution session does not expose a callable Figma MCP `get_design_context` tool or MCP resource-read provider;
+- direct remote MCP HTTP access requires authenticated bearer access;
+- the local VS Code OAuth session is encrypted and protected by Keychain access that is unavailable non-interactively to Codex;
+- local Figma desktop/runtime cache remains partial and transformed, so it is not acceptable as the canonical import source.
+
+Blocking impact:
+
+- Phase 01 cannot safely import into `pwa/` from this Codex session without guessing missing generated source files;
+- the next run must use a client/session that can both call Figma MCP and read the returned `mcp-resource://...` file bodies, or provide a complete local Figma Make export/source snapshot.

@@ -1,13 +1,13 @@
 # 01 — Figma Make React Import Plan
 
-Status: Ready - Figma MCP source access confirmed
+Status: Blocked - Figma MCP resource bodies unavailable in Codex
 Owner: Frontend Developer Agent
 Orchestrated by: Planning & Orchestration Agent
 Worktree branch: `agent/frontend/01-figma-import`
 Recommended worktree: `../worktrees/shifts-01-figma-import`
 Depends on: `master_execution_plan.md`
 Next: `02_frontend_refactor_plan.md`
-Last updated: 2026-04-25 21:15Z
+Last updated: 2026-04-25 21:39Z
 
 ## Objective
 
@@ -142,8 +142,12 @@ Preflight result: `pwa/` is absent/empty for bootstrap purposes, no frontend loc
 - [ ] (YYYY-MM-DD HH:MMZ) Copy `guidelines/` into `pwa/guidelines/` if present.
 - [ ] (YYYY-MM-DD HH:MMZ) Copy `ATTRIBUTIONS.md` and asset references if present.
 - [x] (2026-04-25 20:46Z) If Figma MCP/export is unavailable, stop and write the missing access details to `docs/open_questions.md`.
+- [x] (2026-04-25 21:39Z) Confirm VS Code/Copilot session history contains Figma MCP source resource refs for the Make file.
+- [x] (2026-04-25 21:39Z) Stop because this Codex session cannot read complete MCP resource bodies from those refs.
 
 Source capture result: blocked. The current Codex execution session does not expose a callable Figma MCP source retrieval tool. Public Figma metadata, unauthenticated REST endpoints, Make preview probes and local runtime cache inspection did not provide the complete canonical 89-file source tree. See `docs/open_questions.md` OQ-004 and `docs/reports/figma_import_inventory.md`.
+
+Source capture addendum, 2026-04-25 21:39Z: VS Code/Copilot session history confirms that Figma MCP `get_design_context` returned source refs for `Q7pAncZlZf56UpeF3w1IQq`, but Codex cannot resolve those `mcp-resource://...` refs to complete file bodies in this execution session. The remote MCP endpoint requires authenticated bearer access, and the local VS Code OAuth session is protected by Keychain access unavailable non-interactively to Codex. Import remains blocked under the "do not guess missing files" rule. See OQ-005 and `docs/reports/figma_import_inventory.md`.
 
 ### C. Controlled merge into `pwa/`
 
@@ -173,9 +177,9 @@ Source capture result: blocked. The current Codex execution session does not exp
 
 ### F. Import inventory
 
-- [ ] (YYYY-MM-DD HH:MMZ) Create or update `docs/reports/figma_import_inventory.md`.
-- [ ] (YYYY-MM-DD HH:MMZ) Map Figma UI areas to imported files: Auth, Doctor, Coordinator, Admin, Shared, UI, Figma wrappers.
-- [ ] (YYYY-MM-DD HH:MMZ) Mark each item as `imported`, `partial`, `missing from export`, or `blocked`.
+- [x] (2026-04-25 21:39Z) Create or update `docs/reports/figma_import_inventory.md`.
+- [x] (2026-04-25 21:39Z) Map Figma UI areas to imported files: Auth, Doctor, Coordinator, Admin, Shared, UI, Figma wrappers.
+- [x] (2026-04-25 21:39Z) Mark each item as `imported`, `partial`, `missing from export`, or `blocked`.
 - [ ] (YYYY-MM-DD HH:MMZ) List large generated components that should be split in phase 02.
 - [ ] (YYYY-MM-DD HH:MMZ) List temporary preview files and cleanup candidates.
 
@@ -231,10 +235,10 @@ If the repository uses npm instead of pnpm, use `npm install` / `npm run ...`. D
 - Branch/worktree: `agent/frontend/01-figma-import` at `/Users/piotr/projects/worktrees/shifts-01-figma-import`
 - Completed: preflight, source access investigation, blocker documentation, import inventory report.
 - Validation: no frontend validation commands were run because no complete source was imported and `pwa/package.json` is unavailable.
-- Known issues: Figma MCP source retrieval is unavailable in the current execution session; local/runtime cache is incomplete and transformed.
-- Open questions: OQ-004 in `docs/open_questions.md`.
+- Known issues: Figma MCP source refs are visible from VS Code/Copilot history, but complete MCP resource bodies are unavailable to this Codex session; local/runtime cache is incomplete and transformed.
+- Open questions: OQ-005 in `docs/open_questions.md`.
 - Files changed: `docs/open_questions.md`, `docs/reports/figma_import_inventory.md`, `docs/execution_plans/01_figma_import_plan.md`.
-- Recommended next step: re-run phase 01 with Figma MCP `get_design_context` available, or provide a complete Figma Make export/local source snapshot.
+- Recommended next step: re-run phase 01 in a client that can both call Figma MCP `get_design_context` and read returned MCP resources, or provide a complete Figma Make export/local source snapshot.
 
 ## Change log
 
@@ -242,3 +246,4 @@ If the repository uses npm instead of pnpm, use `npm install` / `npm run ...`. D
 |---|---|---|
 | YYYY-MM-DD HH:MMZ | Frontend Developer Agent | Initial English Figma Make import plan. |
 | 2026-04-25 20:46Z | Frontend Developer Agent | Recorded phase 01 blocker because complete Figma Make source retrieval is unavailable in the current execution session. |
+| 2026-04-25 21:39Z | Frontend Developer Agent | Confirmed Figma MCP resource refs are present in VS Code/Copilot history, but complete resource bodies remain inaccessible to Codex; kept `pwa/` untouched and updated blocker inventory. |
