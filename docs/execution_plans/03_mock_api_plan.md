@@ -18,7 +18,7 @@ Create an asynchronous frontend service layer that lets the PWA behave as if a b
 - Completed handoff from phase 02.
 - UX Gate A notes, if available.
 - Frontend domain types created in phase 02.
-- `docs/architecture/project_asumptions.md`.
+- `docs/architecture/project_assumptions.md`.
 - `docs/architecture/domain_model.md`.
 - `docs/architecture/user_flow.mmd`.
 - `docs/architecture/openapi.yaml` as read-only context.
@@ -50,7 +50,7 @@ Create an asynchronous frontend service layer that lets the PWA behave as if a b
 - `docs/architecture/openapi.yaml`
 - `docs/architecture/er_diagram.md`
 - `docs/architecture/domain_model.md`
-- `docs/architecture/project_asumptions.md`
+- `docs/architecture/project_assumptions.md`
 - `docs/architecture/user_flow.mmd`
 - `docs/adr/**`, except for recommending ADR needs in the handoff
 

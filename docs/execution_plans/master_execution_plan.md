@@ -10,7 +10,7 @@ Coordinate the agent family that delivers the SHIFTS_MVP doctor duty scheduling 
 
 ## Source of truth
 
-1. `docs/architecture/project_asumptions.md` — MVP scope, roles, workflow and constraints.
+1. `docs/architecture/project_assumptions.md` — MVP scope, roles, workflow and constraints.
 2. `docs/architecture/domain_model.md` — domain entities, states and invariants.
 3. `docs/architecture/er_diagram.md` — data relationships.
 4. `docs/architecture/user_flow.mmd` — end-to-end workflow.
@@ -111,7 +111,7 @@ The Orchestration Agent must pause or reject a merge when:
 - the agent worked outside its assigned scope;
 - the worktree is not based on the expected integration branch;
 - validation commands fail and the defect is outside the current phase scope;
-- implementation contradicts `docs/architecture/project_asumptions.md`, `docs/architecture/domain_model.md`, `docs/architecture/user_flow.mmd` or accepted ADRs;
+- implementation contradicts `docs/architecture/project_assumptions.md`, `docs/architecture/domain_model.md`, `docs/architecture/user_flow.mmd` or accepted ADRs;
 - a required architecture decision is missing;
 - API behavior is implemented before or against `docs/architecture/openapi.yaml`;
 - QA reports a blocking defect in schedule generation, publication, swap approval, hard-rule validation or audit logging.

@@ -56,7 +56,7 @@ The import should preserve this structure inside `pwa/` where possible, but must
 
 - Figma Make React output, accessible through Figma Make export, Figma MCP Server, or copied local files.
 - `pwa/` current frontend project structure.
-- `docs/architecture/project_asumptions.md` for MVP scope.
+- `docs/architecture/project_assumptions.md` for MVP scope.
 - `docs/architecture/domain_model.md` for role/state terminology.
 - `docs/architecture/user_flow.mmd` for flow context.
 - `docs/architecture/openapi.yaml` for read-only awareness only.
@@ -96,7 +96,7 @@ The import should preserve this structure inside `pwa/` where possible, but must
 - `docs/architecture/openapi.yaml`
 - `docs/architecture/domain_model.md`
 - `docs/architecture/er_diagram.md`
-- `docs/architecture/project_asumptions.md`
+- `docs/architecture/project_assumptions.md`
 - `docs/architecture/user_flow.mmd`
 - `docs/adr/**`, except for recommending ADR needs in the handoff
 

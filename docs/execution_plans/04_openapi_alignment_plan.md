@@ -18,7 +18,7 @@ Align `docs/architecture/openapi.yaml` with the MVP product scope, domain model,
 - Completed handoff from phase 03.
 - `docs/reports/mock_api_report.md`.
 - `pwa/src/services/**` and frontend domain types.
-- `docs/architecture/project_asumptions.md`.
+- `docs/architecture/project_assumptions.md`.
 - `docs/architecture/domain_model.md`.
 - `docs/architecture/er_diagram.md`.
 - `docs/architecture/user_flow.mmd`.
@@ -48,7 +48,7 @@ Align `docs/architecture/openapi.yaml` with the MVP product scope, domain model,
 - `api/tests/**`
 - `docs/architecture/domain_model.md`
 - `docs/architecture/er_diagram.md`
-- `docs/architecture/project_asumptions.md`
+- `docs/architecture/project_assumptions.md`
 - `docs/architecture/user_flow.mmd`
 - `docs/adr/**`, except for recommending ADR updates in the handoff
 

@@ -19,7 +19,7 @@ Validate the integrated SHIFTS_MVP application with backend tests, frontend chec
 - `docs/reports/integration_report.md`.
 - UX Gate B notes, if available.
 - Backend seed/reset instructions using SQLite.
-- `docs/architecture/project_asumptions.md`.
+- `docs/architecture/project_assumptions.md`.
 - `docs/architecture/domain_model.md`.
 - `docs/architecture/user_flow.mmd`.
 - `docs/architecture/openapi.yaml`.
@@ -52,7 +52,7 @@ Validate the integrated SHIFTS_MVP application with backend tests, frontend chec
 - `docs/architecture/openapi.yaml`, except to report contract defects.
 - `docs/architecture/domain_model.md`.
 - `docs/architecture/er_diagram.md`.
-- `docs/architecture/project_asumptions.md`.
+- `docs/architecture/project_assumptions.md`.
 - `docs/architecture/user_flow.mmd`.
 - `docs/adr/**`, except for recommending updates in the handoff.
 

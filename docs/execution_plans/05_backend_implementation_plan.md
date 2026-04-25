@@ -18,7 +18,7 @@ Implement the FastAPI backend in `api/` strictly from the aligned `docs/architec
 - Completed handoff from phase 04.
 - Updated `docs/architecture/openapi.yaml`.
 - `docs/reports/openapi_alignment_report.md`.
-- `docs/architecture/project_asumptions.md`.
+- `docs/architecture/project_assumptions.md`.
 - `docs/architecture/domain_model.md`.
 - `docs/architecture/er_diagram.md`.
 - `docs/architecture/user_flow.mmd`.
@@ -65,7 +65,7 @@ Rules:
 - `docs/architecture/openapi.yaml`, except tiny approved contract corrections
 - `docs/architecture/domain_model.md`
 - `docs/architecture/er_diagram.md`
-- `docs/architecture/project_asumptions.md`
+- `docs/architecture/project_assumptions.md`
 - `docs/architecture/user_flow.mmd`
 - `docs/adr/**`, except for proposing ADR updates in the handoff
 

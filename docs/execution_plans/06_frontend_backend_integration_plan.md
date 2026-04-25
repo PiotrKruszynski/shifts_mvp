@@ -50,7 +50,7 @@ Replace frontend mock service implementations with real API calls to the FastAPI
 - Large UI rewrites.
 - `docs/architecture/domain_model.md`
 - `docs/architecture/er_diagram.md`
-- `docs/architecture/project_asumptions.md`
+- `docs/architecture/project_assumptions.md`
 - `docs/architecture/user_flow.mmd`
 - `docs/adr/**`, except for recommending updates in the handoff
 

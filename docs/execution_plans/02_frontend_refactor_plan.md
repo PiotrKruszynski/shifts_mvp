@@ -18,7 +18,7 @@ Turn the imported Figma Make React snapshot into a maintainable React/PWA fronte
 - Completed handoff from `01_figma_import_plan.md`.
 - `docs/reports/figma_import_inventory.md`.
 - Imported `pwa/src/app/**` from Figma Make.
-- `docs/architecture/project_asumptions.md`.
+- `docs/architecture/project_assumptions.md`.
 - `docs/architecture/domain_model.md`.
 - `docs/architecture/user_flow.mmd`.
 - `docs/architecture/openapi.yaml` as read-only context.
@@ -52,7 +52,7 @@ Turn the imported Figma Make React snapshot into a maintainable React/PWA fronte
 - `docs/architecture/openapi.yaml`
 - `docs/architecture/domain_model.md`
 - `docs/architecture/er_diagram.md`
-- `docs/architecture/project_asumptions.md`
+- `docs/architecture/project_assumptions.md`
 - `docs/architecture/user_flow.mmd`
 - `docs/adr/**`, except for recommending needed ADRs in the handoff
 
