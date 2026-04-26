@@ -36,12 +36,6 @@ class RecordStore:
             ).fetchone()
         return None if row is None else decode_record(row["data"])
 
-    def require(self, kind: str, record_id: str) -> dict[str, Any]:
-        record = self.get(kind, record_id)
-        if record is None:
-            raise KeyError(f"{kind}:{record_id}")
-        return record
-
     def save(self, kind: str, data: dict[str, Any]) -> dict[str, Any]:
         record_id = str(data["id"])
         now = utc_now()
@@ -60,10 +54,6 @@ class RecordStore:
                 (kind, record_id, encode_record(stored), created_at, now),
             )
         return self.public(stored)
-
-    def delete(self, kind: str, record_id: str) -> None:
-        with database_connection(self.database_path) as connection:
-            connection.execute("DELETE FROM records WHERE kind = ? AND id = ?", (kind, record_id))
 
     def clear(self) -> None:
         with database_connection(self.database_path) as connection:

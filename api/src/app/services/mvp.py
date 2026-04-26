@@ -44,11 +44,6 @@ def full_name(user: dict[str, Any]) -> str:
     return f"{user['firstName']} {user['lastName']}"
 
 
-def date_label(value: str) -> str:
-    parsed = date.fromisoformat(value)
-    return parsed.strftime("%Y-%m-%d")
-
-
 def period_label(schedule: dict[str, Any]) -> str:
     start = date.fromisoformat(schedule["periodStart"])
     return start.strftime("%B %Y")
