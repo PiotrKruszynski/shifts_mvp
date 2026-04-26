@@ -75,7 +75,10 @@ export const router = createBrowserRouter([
         path: "swap-request",
         element: doctorSwapFlowEnabledFixture ? <SwapRequest /> : <Navigate to="/doctor/schedule" replace />,
       },
-      { path: "swap-approval/:id", element: <SwapApproval /> },
+      {
+        path: "swap-approval/:id",
+        element: doctorSwapFlowEnabledFixture ? <SwapApproval /> : <Navigate to="/doctor/schedule" replace />,
+      },
       { path: "leave-requests", element: <DoctorLeaveRequests /> },
     ],
   },

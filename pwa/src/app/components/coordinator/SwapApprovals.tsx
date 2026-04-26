@@ -1,5 +1,15 @@
 import { useState } from "react";
 import { RefreshCw, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../ui/alert-dialog";
 
 interface SwapRequest {
   id: string;
@@ -183,40 +193,43 @@ export function SwapApprovals() {
         </div>
       )}
 
-      {showModal && selectedRequest && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              {modalAction === "approve" ? "Zatwierdź zamianę" : "Odrzuć zamianę"}
-            </h3>
+      <AlertDialog open={showModal} onOpenChange={setShowModal}>
+        {selectedRequest && (
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {modalAction === "approve" ? "Zatwierdź zamianę" : "Odrzuć zamianę"}
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                {modalAction === "approve"
+                  ? `Czy na pewno chcesz zatwierdzić zamianę między ${selectedRequest.doctorA} i ${selectedRequest.doctorB}?`
+                  : `Czy na pewno chcesz odrzucić propozycję zamiany między ${selectedRequest.doctorA} i ${selectedRequest.doctorB}?`}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
 
-            <p className="text-gray-600 mb-6">
-              {modalAction === "approve"
-                ? `Czy na pewno chcesz zatwierdzić zamianę między ${selectedRequest.doctorA} i ${selectedRequest.doctorB}?`
-                : `Czy na pewno chcesz odrzucić tę propozycję zamiany?`}
-            </p>
-
-            <div className="flex gap-3">
-              <button
+            <AlertDialogFooter>
+              <AlertDialogCancel
+                onClick={() => {
+                  setShowModal(false);
+                  setSelectedRequest(null);
+                }}
+              >
+                Anuluj
+              </AlertDialogCancel>
+              <AlertDialogAction
                 onClick={confirmAction}
-                className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
+                className={
                   modalAction === "approve"
                     ? "bg-green-600 text-white hover:bg-green-700"
                     : "bg-red-600 text-white hover:bg-red-700"
-                }`}
+                }
               >
                 Potwierdź
-              </button>
-              <button
-                onClick={() => setShowModal(false)}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-              >
-                Anuluj
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        )}
+      </AlertDialog>
     </div>
   );
 }
