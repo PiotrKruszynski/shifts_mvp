@@ -7,7 +7,7 @@ Worktree branch: `agent/frontend/02-frontend-refactor`
 Recommended worktree: `../worktrees/shifts-02-frontend-refactor`
 Depends on: `01_figma_import_plan.md`
 Next: UX Gate A, then `03_mock_api_plan.md`
-Last updated: 2026-04-26 09:11Z
+Last updated: 2026-04-26 10:25Z
 
 ## Objective
 
@@ -255,7 +255,8 @@ UX Designer should review:
 - Open questions: none added in this phase.
 - UX Gate A readiness: ready. Review mixed PL/EN labels preserved from the Figma import and responsive behavior for doctor mobile views.
 - Files changed: `pwa/**`, `docs/reports/frontend_refactor_report.md`, `docs/reports/figma_import_inventory.md`, `docs/open_questions.md`, `docs/execution_plans/01_figma_import_plan.md`, `docs/execution_plans/02_frontend_refactor_plan.md`.
-- Recommended next step: UX Gate A. Start `03_mock_api_plan.md` only after UX Gate A completes or receives a formal waiver from the Planning & Orchestration Agent.
+- Gate decision: PASS. UX Gate A passed after the follow-up polish on `agent/frontend/02-ux-gate-a-polish` and the accepted state is now contained in this branch.
+- Recommended next step: start `03_mock_api_plan.md` from this accepted Phase 02 branch state.
 
 ### UX Gate A Polish Pass
 
@@ -263,7 +264,8 @@ UX Designer should review:
 - Completed: published-only doctor swap gating, mobile doctor flow polish for availability and swap request, PL/EN label cleanup on reviewed surfaces, minimum empty/success/conflict states in reviewed areas, and accessibility basics for icon-only controls, labels, and dialogs.
 - Validation: `corepack pnpm install`, `corepack pnpm run typecheck`, `corepack pnpm run lint`, and `corepack pnpm run build` all passed from `pwa/` on 2026-04-26 after the polish pass.
 - Known issues: no browser screenshot regression run was performed in this polish branch; UX Gate A review artifacts should remain the source for final visual sign-off.
-- Recommended next step: merge the polish pass into the accepted Phase 02 frontend line before any Phase 03 mock-service work begins.
+- Gate outcome: PASS. The polish pass closed the remaining UX Gate A blockers and was fast-forwarded into `agent/frontend/02-frontend-refactor`.
+- Recommended next step: unlock `03_mock_api_plan.md` and start Phase 03 from the accepted Phase 02 frontend line.
 
 ## Change log
 
@@ -274,3 +276,4 @@ UX Designer should review:
 | 2026-04-26 09:11Z | Git Integrator Agent | Integrated local `master` into the Phase 02 branch, kept the refactored frontend versions for add/add conflicts, and refreshed the handoff after post-merge validation. |
 | 2026-04-26 09:16Z | Gitkeeper Agent | Approved operational closure for Phase 02, opened UX Gate A, and blocked Phase 03 until UX Gate A completes or is formally waived. |
 | 2026-04-26 10:17Z | Frontend Developer Agent | Recorded the UX Gate A polish pass covering published-only doctor swaps, doctor mobile flow fixes, reviewed empty/error/conflict states, label cleanup, and accessibility basics. |
+| 2026-04-26 10:25Z | Planning & Orchestration Agent | Recorded UX Gate A PASS, fast-forwarded the accepted polish pass into the canonical Phase 02 branch, and unlocked Phase 03. |

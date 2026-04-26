@@ -1,6 +1,6 @@
 # Frontend Refactor Report
 
-Last updated: 2026-04-26 10:17Z
+Last updated: 2026-04-26 10:25Z
 Agent: Frontend Developer Agent
 Branch: `agent/frontend/02-frontend-refactor`
 Worktree: `/Users/piotr/projects/worktrees/shifts-02-frontend-refactor`
@@ -120,6 +120,10 @@ Results:
 - The same `typecheck`, `lint`, and `build` commands were re-run after merging `master`; all passed on the integrated tree.
 - No real API calls found in `pwa/src`, `pwa/package.json`, or `pwa/vite.config.ts`.
 
+## UX Gate A Outcome
+
+UX Gate A passed after the follow-up polish pass. The remaining blockers on published-only doctor swap gating and coordinator dialog accessibility were closed on `agent/frontend/02-ux-gate-a-polish`, then fast-forwarded into `agent/frontend/02-frontend-refactor`.
+
 ## Next Gate
 
-Proceed to UX Gate A. Start Phase 03 mock API only after UX Gate A completes, or after a formal waiver from the Planning & Orchestration Agent. The next implementation phase should replace fixtures with a mock service boundary without changing component visuals.
+Proceed to `03_mock_api_plan.md`. The next implementation phase should replace fixtures with a mock service boundary without changing component visuals.
