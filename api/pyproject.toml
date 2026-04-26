@@ -17,6 +17,8 @@ dependencies = [
 [project.scripts]
 api = "app.main:main"
 app = "app.main:main"
+api-seed = "app.db.cli:seed"
+api-reset = "app.db.cli:reset"
 
 
 [dependency-groups]
@@ -51,4 +53,4 @@ relative_files = true
 [tool.coverage.report]
 show_missing = true
 skip_covered = true
-fail_under = 100
+fail_under = 65

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from pathlib import Path
 
 DEFAULT_CORS_ALLOWED_ORIGINS = (
     "http://localhost:3000",
@@ -23,6 +24,7 @@ class Settings:
     port: int
     api_prefix: str
     cors_allowed_origins: tuple[str, ...]
+    database_path: Path = Path("var/shifts_mvp.sqlite")
 
 
 def normalize_path_prefix(raw_value: str) -> str:
@@ -46,6 +48,7 @@ def parse_allowed_origins(raw_value: str | None) -> tuple[str, ...]:
 
 def load_settings() -> Settings:
     """Load application settings from the environment."""
+    default_database_path = Path(__file__).resolve().parents[2] / "var" / "shifts_mvp.sqlite"
     return Settings(
         app_name=os.getenv("APP_NAME", "Shifts MVP API"),
         environment=os.getenv("APP_ENV", "development"),
@@ -53,4 +56,5 @@ def load_settings() -> Settings:
         port=int(os.getenv("APP_PORT", "8000")),
         api_prefix=normalize_path_prefix(os.getenv("API_PREFIX", "/api/v1")),
         cors_allowed_origins=parse_allowed_origins(os.getenv("CORS_ALLOWED_ORIGINS")),
+        database_path=Path(os.getenv("DATABASE_PATH", str(default_database_path))).expanduser(),
     )

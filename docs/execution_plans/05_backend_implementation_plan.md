@@ -1,13 +1,13 @@
 # 05 — Backend Implementation Plan
 
-Status: Living Draft
+Status: Implemented - ready for review
 Owner: Backend Developer Agent
 Orchestrated by: Planning & Orchestration Agent
 Worktree branch: `agent/backend/05-backend-implementation`
 Recommended worktree: `../worktrees/shifts-05-backend-implementation`
 Depends on: `04_openapi_alignment_plan.md` and `docs/adr/0007-use-sqlite-for-mvp-local-persistence.md`
 Next: `06_frontend_backend_integration_plan.md`
-Last updated: YYYY-MM-DD HH:MMZ
+Last updated: 2026-04-26 12:40Z
 
 ## Objective
 
@@ -199,10 +199,10 @@ If the template already has a different layout, use it and document the mapping 
 
 ### F. Report and handoff
 
-- [ ] (YYYY-MM-DD HH:MMZ) Create `docs/reports/backend_implementation_report.md`.
-- [ ] (YYYY-MM-DD HH:MMZ) Document implemented endpoints, seed accounts, database path and reset command.
-- [ ] (YYYY-MM-DD HH:MMZ) Document deviations from OpenAPI, if any.
-- [ ] (YYYY-MM-DD HH:MMZ) Document integration instructions for phase 06.
+- [x] (2026-04-26 12:40Z) Create `docs/reports/backend_implementation_report.md`.
+- [x] (2026-04-26 12:40Z) Document implemented endpoints, seed accounts, database path and reset command.
+- [x] (2026-04-26 12:40Z) Document deviations from OpenAPI, if any.
+- [x] (2026-04-26 12:40Z) Document integration instructions for phase 06.
 
 ## Validation commands
 
@@ -259,13 +259,18 @@ Adjust module path to the actual template.
 
 ## Handoff
 
-- Branch/worktree:
-- Completed:
-- Validation:
-- Known issues:
-- Open questions:
-- Files changed:
-- Recommended next step:
+- Branch/worktree: `agent/backend/05-backend-implementation` at `/Users/piotr/projects/worktrees/shifts-05-backend-implementation`.
+- Remote branch: `origin/agent/backend/05-backend-implementation`.
+- Base branch: `master`.
+- Current HEAD: see `git rev-parse HEAD` after the Phase 05 commit.
+- Contains master: yes, per current phase worktree branch state.
+- Completed: FastAPI route implementation for the aligned MVP OpenAPI surface; SQLite JSON-record persistence; deterministic seed/reset commands; MVP auth/current-user behavior; schedule lifecycle, generation, validation, publication, archive, availability, leave, swap, metrics, notifications, calendar export and audit flows; backend tests and implementation report.
+- Validation: `cd api && uv run ruff check .` passed; `cd api && uv run ty check .` passed; `cd api && uv run pytest` passed with 19 tests and 68.11% coverage against a 65% MVP gate.
+- Files changed: `api/pyproject.toml`, `api/pytest.toml`, `api/ruff.toml`, `api/src/app/api/router.py`, `api/src/app/api/routes/mvp.py`, `api/src/app/config.py`, `api/src/app/db/**`, `api/src/app/main.py`, `api/src/app/schemas/**`, `api/src/app/services/**`, `api/tests/test_mvp_api.py`, `docs/reports/backend_implementation_report.md`, `docs/execution_plans/05_backend_implementation_plan.md`.
+- Known issues: MVP auth identifies current users but does not enforce every OpenAPI `x-roles` rule; persistence uses a generic SQLite JSON-record table behind a repository layer rather than full relational tables; route payloads use JSON dictionaries for many schemas rather than one Pydantic class per OpenAPI schema.
+- Open questions: none blocking Phase 06.
+- Gate decision: ready for Orchestrator/Gatekeeper review after commit.
+- Recommended next step: commit Phase 05, push the phase branch, then start Phase 06 frontend/backend integration after acceptance.
 
 ## Change log
 

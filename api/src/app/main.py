@@ -5,12 +5,14 @@ from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from starlette.middleware import Middleware
 
 from app.api.router import api_router
 from app.config import Settings, load_settings
+from app.db.seed import ensure_seeded
 from app.utils.logging_config import configure_logging
 
 if TYPE_CHECKING:
@@ -34,12 +36,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         configure_logging()
+        ensure_seeded(current_settings.database_path)
         logger.info(
             "API startup complete",
             extra={
                 "app_name": current_settings.app_name,
                 "environment": current_settings.environment,
                 "api_prefix": current_settings.api_prefix or "/",
+                "database_path": str(current_settings.database_path),
             },
         )
         yield
@@ -67,6 +71,16 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
     app.state.settings = current_settings
     app.include_router(api_router, prefix=current_settings.api_prefix)
+
+    @app.exception_handler(HTTPException)
+    async def http_exception_handler(_: Request, exc: HTTPException) -> JSONResponse:
+        if isinstance(exc.detail, dict):
+            return JSONResponse(status_code=exc.status_code, content=exc.detail, headers=exc.headers)
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"code": "HTTP_ERROR", "message": str(exc.detail), "details": []},
+            headers=exc.headers,
+        )
 
     @app.get("/", tags=["meta"])
     def read_service_index() -> dict[str, str]:
