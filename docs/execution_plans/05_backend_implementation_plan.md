@@ -73,7 +73,7 @@ Rules:
 
 ```bash
 git fetch --all --prune
-git worktree add ../worktrees/shifts-05-backend-implementation -b agent/backend/05-backend-implementation main
+git worktree add ../worktrees/shifts-05-backend-implementation -b agent/backend/05-backend-implementation master
 cd ../worktrees/shifts-05-backend-implementation
 ```
 

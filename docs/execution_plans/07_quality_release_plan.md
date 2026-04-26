@@ -60,7 +60,7 @@ Validate the integrated SHIFTS_MVP application with backend tests, frontend chec
 
 ```bash
 git fetch --all --prune
-git worktree add ../worktrees/shifts-07-quality-release -b agent/qa/07-quality-release main
+git worktree add ../worktrees/shifts-07-quality-release -b agent/qa/07-quality-release master
 cd ../worktrees/shifts-07-quality-release
 ```
 

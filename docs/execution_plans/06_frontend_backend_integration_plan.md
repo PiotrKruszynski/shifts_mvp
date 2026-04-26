@@ -58,7 +58,7 @@ Replace frontend mock service implementations with real API calls to the FastAPI
 
 ```bash
 git fetch --all --prune
-git worktree add ../worktrees/shifts-06-api-integration -b agent/frontend/06-api-integration main
+git worktree add ../worktrees/shifts-06-api-integration -b agent/frontend/06-api-integration master
 cd ../worktrees/shifts-06-api-integration
 ```
 
