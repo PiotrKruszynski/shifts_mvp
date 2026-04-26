@@ -1,5 +1,11 @@
 import { Link } from "react-router";
 import { Calendar, Clock, CheckCircle, RefreshCw } from "lucide-react";
+import {
+  doctorCurrentScheduleFixture,
+  doctorScheduleShiftsFixture,
+  doctorSwapFlowEnabledFixture,
+} from "../../../fixtures/schedules.fixture";
+import { pendingSwapFixture } from "../../../fixtures/swaps.fixture";
 import { ScheduleStatusBadge } from "../shared/ScheduleStatusBadge";
 
 export function DoctorDashboard() {
@@ -13,6 +19,15 @@ export function DoctorDashboard() {
   const deadlineDate = new Date("2026-04-28");
   const daysUntilDeadline = Math.ceil((deadlineDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
   const deadlinePassed = daysUntilDeadline < 0;
+  const scheduleStatusLabel = {
+    DRAFT: "Szkic",
+    GENERATED: "Wygenerowany",
+    PUBLISHED: "Opublikowany",
+    ARCHIVED: "Zarchiwizowany",
+  } as const;
+  const canRequestSwap =
+    doctorSwapFlowEnabledFixture &&
+    doctorScheduleShiftsFixture.some((shift) => shift.canSwap && shift.scheduleStatus === "PUBLISHED");
 
   return (
     <div className="p-4 pb-20 md:pb-4">
@@ -81,7 +96,7 @@ export function DoctorDashboard() {
               </div>
               <p className="text-sm text-blue-700">Maj 2026</p>
             </div>
-            <ScheduleStatusBadge status="Opublikowany" />
+            <ScheduleStatusBadge status={scheduleStatusLabel[doctorCurrentScheduleFixture.status]} />
           </div>
           <Link
             to="/doctor/schedule"
@@ -110,18 +125,20 @@ export function DoctorDashboard() {
             </div>
           </Link>
 
-          <Link
-            to="/doctor/swap-request"
-            className="flex items-center gap-3 p-4 hover:bg-gray-50 transition-colors"
-          >
-            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-              <RefreshCw className="w-5 h-5 text-purple-600" />
-            </div>
-            <div className="flex-1">
-              <p className="font-medium text-gray-900">Zaproponuj zamianę</p>
-              <p className="text-sm text-gray-600">Wymień się dyżurem z kolegą</p>
-            </div>
-          </Link>
+          {canRequestSwap && (
+            <Link
+              to="/doctor/swap-request"
+              className="flex items-center gap-3 p-4 hover:bg-gray-50 transition-colors"
+            >
+              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                <RefreshCw className="w-5 h-5 text-purple-600" />
+              </div>
+              <div className="flex-1">
+                <p className="font-medium text-gray-900">Zaproponuj zamianę</p>
+                <p className="text-sm text-gray-600">Wymień się dyżurem po publikacji grafiku</p>
+              </div>
+            </Link>
+          )}
 
           <Link
             to="/doctor/leave-requests"
@@ -138,21 +155,24 @@ export function DoctorDashboard() {
         </div>
       </div>
 
-      <div className="mt-6 bg-white rounded-xl border border-gray-200 p-4">
-        <h3 className="font-semibold text-gray-900 mb-4">Aktywne zamiany</h3>
-        <div className="space-y-3">
-          <div className="flex items-start gap-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-            <RefreshCw className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-amber-900">Oczekuje na Dr Jan Nowak</p>
-              <p className="text-sm text-amber-700 mt-1">
-                15.05.2026 ↔ 18.05.2026
-              </p>
+      {canRequestSwap && (
+        <div className="mt-6 bg-white rounded-xl border border-gray-200 p-4">
+          <h3 className="font-semibold text-gray-900 mb-4">Aktywne zamiany</h3>
+          <div className="space-y-3">
+            <div className="flex items-start gap-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <RefreshCw className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-amber-900">Oczekuje na Dr Jan Nowak</p>
+                <p className="text-sm text-amber-700 mt-1">01.05.2026 ↔ 02.05.2026</p>
+                <p className="text-xs text-amber-700 mt-1">
+                  Status: {pendingSwapFixture.status === "PENDING_DOCTOR_ACCEPTANCE" ? "oczekuje na akceptację lekarza" : "w toku"}
+                </p>
+              </div>
+              <span className="text-xs text-amber-700 whitespace-nowrap">2 dni temu</span>
             </div>
-            <span className="text-xs text-amber-700 whitespace-nowrap">2 dni temu</span>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

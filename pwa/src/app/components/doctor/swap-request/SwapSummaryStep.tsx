@@ -60,14 +60,16 @@ export function SwapSummaryStep({
         </ol>
       </div>
 
-      <div className="flex gap-3">
+      <div className="flex flex-col-reverse gap-3 sm:flex-row">
         <button
+          type="button"
           onClick={onBack}
           className="flex-1 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
         >
           Wstecz
         </button>
         <button
+          type="button"
           onClick={onSubmit}
           className="flex-1 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
         >

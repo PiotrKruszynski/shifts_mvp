@@ -18,7 +18,7 @@ export function CoordinatorLayout() {
   };
 
   const navItems = [
-    { path: "/coordinator", label: "Dashboard", icon: Home },
+    { path: "/coordinator", label: "Pulpit", icon: Home },
     { path: "/coordinator/schedules", label: "Grafiki", icon: Calendar },
     { path: "/coordinator/swaps", label: "Zamiany", icon: RefreshCw },
     { path: "/coordinator/leave-requests", label: "Wnioski urlopowe", icon: FileText },
@@ -37,15 +37,19 @@ export function CoordinatorLayout() {
             <p className="text-sm text-gray-600">Koordynator</p>
           </div>
           <button
+            type="button"
             onClick={() => setMenuOpen(!menuOpen)}
-            className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+            aria-expanded={menuOpen}
+            aria-controls="coordinator-mobile-nav"
+            aria-label={menuOpen ? "Zamknij menu" : "Otwórz menu"}
+            className="rounded-lg p-2 text-gray-600 hover:bg-gray-100"
           >
             {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>
 
         {menuOpen && (
-          <nav className="border-t border-gray-200">
+          <nav id="coordinator-mobile-nav" aria-label="Nawigacja koordynatora" className="border-t border-gray-200">
             {navItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.path);
@@ -65,6 +69,7 @@ export function CoordinatorLayout() {
               );
             })}
             <button
+              type="button"
               onClick={() => {
                 setMenuOpen(false);
                 handleLogout();
@@ -86,7 +91,7 @@ export function CoordinatorLayout() {
             <p className="text-sm text-gray-600 mt-1">Koordynator</p>
           </div>
 
-          <nav className="flex-1 p-4 space-y-1 overflow-y-auto min-h-0">
+          <nav aria-label="Nawigacja koordynatora" className="flex-1 p-4 space-y-1 overflow-y-auto min-h-0">
             {navItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.path);
@@ -110,6 +115,7 @@ export function CoordinatorLayout() {
 
           <div className="p-4 border-t border-gray-200 flex-shrink-0">
             <button
+              type="button"
               onClick={handleLogout}
               className="flex items-center gap-3 px-4 py-3 rounded-lg w-full text-left text-red-600 hover:bg-red-50 transition-colors"
             >

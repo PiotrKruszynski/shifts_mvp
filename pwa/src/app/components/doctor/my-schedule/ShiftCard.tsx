@@ -35,6 +35,7 @@ export function ShiftCard({ shift }: ShiftCardProps) {
       {canRequestSwap && (
         <Link
           to="/doctor/swap-request"
+          state={{ selectedShiftId: shift.shift.id, from: "/doctor/schedule" }}
           className="flex items-center justify-center gap-2 w-full px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors text-sm font-medium"
         >
           <RefreshCw className="w-4 h-4" />

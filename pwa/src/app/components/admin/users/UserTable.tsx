@@ -15,10 +15,10 @@ const roleLabels: Record<Role, string> = {
 };
 
 const statusLabels: Record<UserStatus, string> = {
-  ACTIVE: "Active",
-  INVITED: "Invited",
-  SUSPENDED: "Inactive",
-  DEACTIVATED: "Inactive",
+  ACTIVE: "Aktywny",
+  INVITED: "Zaproszony",
+  SUSPENDED: "Zawieszony",
+  DEACTIVATED: "Nieaktywny",
 };
 
 function statusIcon(status: UserStatus) {
@@ -65,6 +65,16 @@ export function UserTable({ users }: UserTableProps) {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
+            {users.length === 0 && (
+              <tr>
+                <td colSpan={6} className="px-6 py-10 text-center">
+                  <h3 className="text-lg font-semibold text-gray-900">Brak użytkowników</h3>
+                  <p className="mt-2 text-sm text-gray-600">
+                    Zmień filtry albo wyszukiwane hasło, aby zobaczyć dopasowane konta.
+                  </p>
+                </td>
+              </tr>
+            )}
             {users.map(({ user, primaryRole, departmentName }) => (
               <tr key={user.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4">
@@ -97,15 +107,27 @@ export function UserTable({ users }: UserTableProps) {
                   {user.createdAt.slice(0, 10)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                  <button className="text-blue-600 hover:text-blue-800 font-medium mr-3">
+                  <button
+                    type="button"
+                    aria-label={`Edytuj użytkownika ${user.firstName} ${user.lastName}`}
+                    className="text-blue-600 hover:text-blue-800 font-medium mr-3"
+                  >
                     Edytuj
                   </button>
                   {user.status === "ACTIVE" ? (
-                    <button className="text-red-600 hover:text-red-800 font-medium">
+                    <button
+                      type="button"
+                      aria-label={`Dezaktywuj użytkownika ${user.firstName} ${user.lastName}`}
+                      className="text-red-600 hover:text-red-800 font-medium"
+                    >
                       Dezaktywuj
                     </button>
                   ) : (
-                    <button className="text-green-600 hover:text-green-800 font-medium">
+                    <button
+                      type="button"
+                      aria-label={`Aktywuj użytkownika ${user.firstName} ${user.lastName}`}
+                      className="text-green-600 hover:text-green-800 font-medium"
+                    >
                       Aktywuj
                     </button>
                   )}

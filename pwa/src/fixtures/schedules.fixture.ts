@@ -7,6 +7,7 @@ import type {
 } from "../domain/types";
 
 export type ShiftCalendarCategory = "Weekday" | "Weekend" | "Holiday";
+export const doctorPublishedScheduleStatus = "PUBLISHED" as const;
 
 export interface ScheduleEditorShiftFixture {
   shift: Shift;
@@ -38,6 +39,20 @@ export const currentScheduleFixture: Schedule = {
   status: "GENERATED",
   createdAt: "2026-04-01T09:00:00+02:00",
 };
+
+export const doctorCurrentScheduleFixture: Schedule = {
+  id: "schedule-2026-05-surgery-published",
+  departmentId: "dep-surgery",
+  coordinatorUserId: "user-coordinator-jan",
+  periodStart: "2026-05-01",
+  periodEnd: "2026-05-31",
+  availabilityDeadline: "2026-04-20T23:59:00+02:00",
+  status: doctorPublishedScheduleStatus,
+  publishedAt: "2026-04-25T12:00:00+02:00",
+  createdAt: "2026-04-01T09:00:00+02:00",
+};
+
+export const doctorSwapFlowEnabledFixture = doctorCurrentScheduleFixture.status === doctorPublishedScheduleStatus;
 
 export const generatedScheduleShiftsFixture: ScheduleEditorShiftFixture[] = [
   {
@@ -184,19 +199,25 @@ export const generatedScheduleConflictItemsFixture: ConflictItem[] = [
 
 export const doctorScheduleShiftsFixture: DoctorScheduleShiftFixture[] = [
   {
-    shift: generatedScheduleShiftsFixture[0].shift,
-    assignment: generatedScheduleShiftsFixture[0].assignment!,
+    shift: {
+      ...generatedScheduleShiftsFixture[0].shift,
+      scheduleId: doctorCurrentScheduleFixture.id,
+    },
+    assignment: {
+      ...generatedScheduleShiftsFixture[0].assignment!,
+      scheduleId: doctorCurrentScheduleFixture.id,
+    },
     day: "Czwartek",
     department: "Oddział Chirurgii",
     category: "Holiday",
     categoryDay: "Święto Pracy",
-    scheduleStatus: "PUBLISHED",
+    scheduleStatus: doctorPublishedScheduleStatus,
     canSwap: true,
   },
   {
     shift: {
       id: "shift-2026-05-08",
-      scheduleId: currentScheduleFixture.id,
+      scheduleId: doctorCurrentScheduleFixture.id,
       date: "2026-05-08",
       startsAt: "2026-05-08T00:00:00+02:00",
       endsAt: "2026-05-08T23:59:00+02:00",
@@ -205,7 +226,7 @@ export const doctorScheduleShiftsFixture: DoctorScheduleShiftFixture[] = [
     },
     assignment: {
       id: "assignment-2026-05-08",
-      scheduleId: currentScheduleFixture.id,
+      scheduleId: doctorCurrentScheduleFixture.id,
       shiftId: "shift-2026-05-08",
       doctorProfileId: "doctor-anna",
       status: "CONFIRMED",
@@ -217,13 +238,13 @@ export const doctorScheduleShiftsFixture: DoctorScheduleShiftFixture[] = [
     department: "Oddział Chirurgii",
     category: "Weekday",
     categoryDay: "Dzień powszedni",
-    scheduleStatus: "PUBLISHED",
+    scheduleStatus: doctorPublishedScheduleStatus,
     canSwap: true,
   },
   {
     shift: {
       id: "shift-2026-05-16",
-      scheduleId: currentScheduleFixture.id,
+      scheduleId: doctorCurrentScheduleFixture.id,
       date: "2026-05-16",
       startsAt: "2026-05-16T00:00:00+02:00",
       endsAt: "2026-05-16T23:59:00+02:00",
@@ -232,7 +253,7 @@ export const doctorScheduleShiftsFixture: DoctorScheduleShiftFixture[] = [
     },
     assignment: {
       id: "assignment-2026-05-16",
-      scheduleId: currentScheduleFixture.id,
+      scheduleId: doctorCurrentScheduleFixture.id,
       shiftId: "shift-2026-05-16",
       doctorProfileId: "doctor-anna",
       status: "CONFIRMED",
@@ -244,13 +265,13 @@ export const doctorScheduleShiftsFixture: DoctorScheduleShiftFixture[] = [
     department: "Oddział Chirurgii",
     category: "Weekend",
     categoryDay: "Weekend",
-    scheduleStatus: "PUBLISHED",
+    scheduleStatus: doctorPublishedScheduleStatus,
     canSwap: true,
   },
   {
     shift: {
       id: "shift-2026-05-23",
-      scheduleId: currentScheduleFixture.id,
+      scheduleId: doctorCurrentScheduleFixture.id,
       date: "2026-05-23",
       startsAt: "2026-05-23T00:00:00+02:00",
       endsAt: "2026-05-23T23:59:00+02:00",
@@ -259,7 +280,7 @@ export const doctorScheduleShiftsFixture: DoctorScheduleShiftFixture[] = [
     },
     assignment: {
       id: "assignment-2026-05-23",
-      scheduleId: currentScheduleFixture.id,
+      scheduleId: doctorCurrentScheduleFixture.id,
       shiftId: "shift-2026-05-23",
       doctorProfileId: "doctor-anna",
       status: "CONFIRMED",
@@ -271,7 +292,7 @@ export const doctorScheduleShiftsFixture: DoctorScheduleShiftFixture[] = [
     department: "Oddział Chirurgii",
     category: "Weekend",
     categoryDay: "Weekend",
-    scheduleStatus: "PUBLISHED",
+    scheduleStatus: doctorPublishedScheduleStatus,
     canSwap: true,
   },
 ];

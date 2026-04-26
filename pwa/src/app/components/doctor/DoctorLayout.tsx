@@ -18,7 +18,7 @@ export function DoctorLayout() {
   };
 
   const navItems = [
-    { path: "/doctor", label: "Dashboard", icon: Home },
+    { path: "/doctor", label: "Pulpit", icon: Home },
     { path: "/doctor/availability", label: "Dostępność", icon: Calendar },
     { path: "/doctor/schedule", label: "Mój grafik", icon: Calendar },
     { path: "/doctor/leave-requests", label: "Wnioski urlopowe", icon: FileText },
@@ -33,13 +33,21 @@ export function DoctorLayout() {
             <p className="text-sm text-gray-600">Dr Anna Kowalska</p>
           </div>
           <div className="flex items-center gap-3">
-            <button className="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+            <button
+              type="button"
+              aria-label="Powiadomienia"
+              className="relative rounded-lg p-2 text-gray-600 hover:bg-gray-100"
+            >
               <Bell className="w-6 h-6" />
               <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
             </button>
             <button
+              type="button"
               onClick={() => setMenuOpen(!menuOpen)}
-              className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg md:hidden"
+              aria-expanded={menuOpen}
+              aria-controls="doctor-mobile-nav"
+              aria-label={menuOpen ? "Zamknij menu" : "Otwórz menu"}
+              className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 md:hidden"
             >
               {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -47,7 +55,7 @@ export function DoctorLayout() {
         </div>
 
         {menuOpen && (
-          <nav className="border-t border-gray-200 md:hidden">
+          <nav id="doctor-mobile-nav" aria-label="Nawigacja lekarza" className="border-t border-gray-200 md:hidden">
             {navItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.path);
@@ -67,6 +75,7 @@ export function DoctorLayout() {
               );
             })}
             <button
+              type="button"
               onClick={() => {
                 setMenuOpen(false);
                 handleLogout();
@@ -82,7 +91,7 @@ export function DoctorLayout() {
 
       <div className="flex flex-1 overflow-hidden">
         <aside className="hidden md:flex md:flex-col w-64 bg-white border-r border-gray-200 h-full">
-          <nav className="flex-1 p-4 space-y-2 overflow-y-auto min-h-0">
+          <nav aria-label="Nawigacja lekarza" className="flex-1 p-4 space-y-2 overflow-y-auto min-h-0">
             {navItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.path);
@@ -105,6 +114,7 @@ export function DoctorLayout() {
           </nav>
           <div className="p-4 border-t border-gray-200 flex-shrink-0">
             <button
+              type="button"
               onClick={handleLogout}
               className="flex items-center gap-3 px-4 py-3 rounded-lg w-full text-left text-red-600 hover:bg-red-50 transition-colors"
             >

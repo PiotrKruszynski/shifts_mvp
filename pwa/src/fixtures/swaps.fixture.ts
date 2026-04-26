@@ -1,4 +1,5 @@
 import type { Assignment, Shift, SwapRequest } from "../domain/types";
+import { doctorCurrentScheduleFixture } from "./schedules.fixture";
 
 export interface SwapShiftOptionFixture {
   shift: Shift;
@@ -17,7 +18,7 @@ export const mySwapShiftOptionsFixture: SwapShiftOptionFixture[] = [
   {
     shift: {
       id: "shift-2026-05-01",
-      scheduleId: "schedule-2026-05-surgery",
+      scheduleId: doctorCurrentScheduleFixture.id,
       date: "2026-05-01",
       startsAt: "2026-05-01T00:00:00+02:00",
       endsAt: "2026-05-01T23:59:00+02:00",
@@ -26,7 +27,7 @@ export const mySwapShiftOptionsFixture: SwapShiftOptionFixture[] = [
     },
     assignment: {
       id: "assignment-2026-05-01",
-      scheduleId: "schedule-2026-05-surgery",
+      scheduleId: doctorCurrentScheduleFixture.id,
       shiftId: "shift-2026-05-01",
       doctorProfileId: "doctor-anna",
       status: "CONFIRMED",
@@ -40,7 +41,7 @@ export const mySwapShiftOptionsFixture: SwapShiftOptionFixture[] = [
   {
     shift: {
       id: "shift-2026-05-08",
-      scheduleId: "schedule-2026-05-surgery",
+      scheduleId: doctorCurrentScheduleFixture.id,
       date: "2026-05-08",
       startsAt: "2026-05-08T00:00:00+02:00",
       endsAt: "2026-05-08T23:59:00+02:00",
@@ -49,7 +50,7 @@ export const mySwapShiftOptionsFixture: SwapShiftOptionFixture[] = [
     },
     assignment: {
       id: "assignment-2026-05-08",
-      scheduleId: "schedule-2026-05-surgery",
+      scheduleId: doctorCurrentScheduleFixture.id,
       shiftId: "shift-2026-05-08",
       doctorProfileId: "doctor-anna",
       status: "CONFIRMED",
@@ -63,7 +64,7 @@ export const mySwapShiftOptionsFixture: SwapShiftOptionFixture[] = [
   {
     shift: {
       id: "shift-2026-05-16",
-      scheduleId: "schedule-2026-05-surgery",
+      scheduleId: doctorCurrentScheduleFixture.id,
       date: "2026-05-16",
       startsAt: "2026-05-16T00:00:00+02:00",
       endsAt: "2026-05-16T23:59:00+02:00",
@@ -72,7 +73,7 @@ export const mySwapShiftOptionsFixture: SwapShiftOptionFixture[] = [
     },
     assignment: {
       id: "assignment-2026-05-16",
-      scheduleId: "schedule-2026-05-surgery",
+      scheduleId: doctorCurrentScheduleFixture.id,
       shiftId: "shift-2026-05-16",
       doctorProfileId: "doctor-anna",
       status: "CONFIRMED",
@@ -93,7 +94,7 @@ export const swapDoctorOptionsFixture: SwapDoctorOptionFixture[] = [
       {
         shift: {
           id: "shift-2026-05-02",
-          scheduleId: "schedule-2026-05-surgery",
+          scheduleId: doctorCurrentScheduleFixture.id,
           date: "2026-05-02",
           startsAt: "2026-05-02T00:00:00+02:00",
           endsAt: "2026-05-02T23:59:00+02:00",
@@ -102,7 +103,7 @@ export const swapDoctorOptionsFixture: SwapDoctorOptionFixture[] = [
         },
         assignment: {
           id: "assignment-2026-05-02",
-          scheduleId: "schedule-2026-05-surgery",
+          scheduleId: doctorCurrentScheduleFixture.id,
           shiftId: "shift-2026-05-02",
           doctorProfileId: "doctor-jan",
           status: "CONFIRMED",
@@ -116,7 +117,7 @@ export const swapDoctorOptionsFixture: SwapDoctorOptionFixture[] = [
       {
         shift: {
           id: "shift-2026-05-18",
-          scheduleId: "schedule-2026-05-surgery",
+          scheduleId: doctorCurrentScheduleFixture.id,
           date: "2026-05-18",
           startsAt: "2026-05-18T00:00:00+02:00",
           endsAt: "2026-05-18T23:59:00+02:00",
@@ -125,7 +126,7 @@ export const swapDoctorOptionsFixture: SwapDoctorOptionFixture[] = [
         },
         assignment: {
           id: "assignment-2026-05-18",
-          scheduleId: "schedule-2026-05-surgery",
+          scheduleId: doctorCurrentScheduleFixture.id,
           shiftId: "shift-2026-05-18",
           doctorProfileId: "doctor-jan",
           status: "CONFIRMED",
@@ -145,7 +146,7 @@ export const swapDoctorOptionsFixture: SwapDoctorOptionFixture[] = [
       {
         shift: {
           id: "shift-2026-05-05",
-          scheduleId: "schedule-2026-05-surgery",
+          scheduleId: doctorCurrentScheduleFixture.id,
           date: "2026-05-05",
           startsAt: "2026-05-05T00:00:00+02:00",
           endsAt: "2026-05-05T23:59:00+02:00",
@@ -154,7 +155,7 @@ export const swapDoctorOptionsFixture: SwapDoctorOptionFixture[] = [
         },
         assignment: {
           id: "assignment-2026-05-05",
-          scheduleId: "schedule-2026-05-surgery",
+          scheduleId: doctorCurrentScheduleFixture.id,
           shiftId: "shift-2026-05-05",
           doctorProfileId: "doctor-maria",
           status: "CONFIRMED",
@@ -168,7 +169,7 @@ export const swapDoctorOptionsFixture: SwapDoctorOptionFixture[] = [
       {
         shift: {
           id: "shift-2026-05-12",
-          scheduleId: "schedule-2026-05-surgery",
+          scheduleId: doctorCurrentScheduleFixture.id,
           date: "2026-05-12",
           startsAt: "2026-05-12T00:00:00+02:00",
           endsAt: "2026-05-12T23:59:00+02:00",
@@ -177,7 +178,7 @@ export const swapDoctorOptionsFixture: SwapDoctorOptionFixture[] = [
         },
         assignment: {
           id: "assignment-2026-05-12",
-          scheduleId: "schedule-2026-05-surgery",
+          scheduleId: doctorCurrentScheduleFixture.id,
           shiftId: "shift-2026-05-12",
           doctorProfileId: "doctor-maria",
           status: "CONFIRMED",
@@ -194,7 +195,7 @@ export const swapDoctorOptionsFixture: SwapDoctorOptionFixture[] = [
 
 export const pendingSwapFixture: SwapRequest = {
   id: "swap-2026-05-01",
-  scheduleId: "schedule-2026-05-surgery",
+  scheduleId: doctorCurrentScheduleFixture.id,
   requestingDoctorId: "doctor-anna",
   sourceAssignmentId: "assignment-2026-05-01",
   targetDoctorId: "doctor-jan",

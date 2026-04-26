@@ -8,12 +8,23 @@ import { UserTable } from "./users/UserTable";
 
 export function Users() {
   const [showAddUser, setShowAddUser] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [filterRole, setFilterRole] = useState<UserRoleFilter>("all");
   const [filterStatus, setFilterStatus] = useState<UserStatusFilter>("all");
 
   const filteredUsers = adminUsersFixture.filter(({ user, primaryRole }) => {
     if (filterRole !== "all" && primaryRole !== filterRole) return false;
     if (filterStatus !== "all" && user.status !== filterStatus) return false;
+    if (searchQuery.trim()) {
+      const normalizedQuery = searchQuery.trim().toLowerCase();
+      const normalizedFullName = `${user.firstName} ${user.lastName}`.toLowerCase();
+      const normalizedEmail = user.email.toLowerCase();
+
+      if (!normalizedFullName.includes(normalizedQuery) && !normalizedEmail.includes(normalizedQuery)) {
+        return false;
+      }
+    }
+
     return true;
   });
 
@@ -35,8 +46,10 @@ export function Users() {
 
       <UserStats users={adminUsersFixture} />
       <UserFilters
+        searchQuery={searchQuery}
         filterRole={filterRole}
         filterStatus={filterStatus}
+        onSearchChange={setSearchQuery}
         onRoleChange={setFilterRole}
         onStatusChange={setFilterStatus}
       />

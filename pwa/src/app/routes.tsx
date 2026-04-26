@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router";
+import { Navigate, createBrowserRouter } from "react-router";
 import { Login } from "./components/auth/Login";
 import { InvitationSignup } from "./components/auth/InvitationSignup";
 import { ResetPassword } from "./components/auth/ResetPassword";
@@ -29,6 +29,7 @@ import { Departments } from "./components/admin/Departments";
 import { SystemSettings } from "./components/admin/SystemSettings";
 import { ComplianceAudit } from "./components/admin/ComplianceAudit";
 import { NotFound } from "./components/NotFound";
+import { doctorSwapFlowEnabledFixture } from "../fixtures/schedules.fixture";
 
 export const router = createBrowserRouter([
   {
@@ -70,7 +71,10 @@ export const router = createBrowserRouter([
       { index: true, element: <DoctorDashboard /> },
       { path: "availability", element: <MyAvailability /> },
       { path: "schedule", element: <MySchedule /> },
-      { path: "swap-request", element: <SwapRequest /> },
+      {
+        path: "swap-request",
+        element: doctorSwapFlowEnabledFixture ? <SwapRequest /> : <Navigate to="/doctor/schedule" replace />,
+      },
       { path: "swap-approval/:id", element: <SwapApproval /> },
       { path: "leave-requests", element: <DoctorLeaveRequests /> },
     ],

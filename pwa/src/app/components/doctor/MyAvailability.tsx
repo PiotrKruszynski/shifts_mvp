@@ -1,7 +1,13 @@
 import { useState } from "react";
-import { Calendar, Save, Info } from "lucide-react";
+import { Calendar, CheckCircle2, Info, Save } from "lucide-react";
 
-type AvailabilityStatus = "available" | "unavailable" | "preferred" | "not-preferred" | "leave-pending" | "leave-approved";
+type AvailabilityStatus =
+  | "available"
+  | "unavailable"
+  | "preferred"
+  | "not-preferred"
+  | "leave-pending"
+  | "leave-approved";
 
 interface DayAvailability {
   date: string;
@@ -18,6 +24,7 @@ export function MyAvailability() {
     "2026-05-15": { date: "2026-05-15", status: "leave-approved", category: null, comment: "" },
   });
   const [pendingChanges, setPendingChanges] = useState<Record<string, DayAvailability>>({});
+  const [saveFeedbackVisible, setSaveFeedbackVisible] = useState(false);
 
   const deadlineDate = new Date("2026-04-28");
   const deadlinePassed = Date.now() > deadlineDate.getTime();
@@ -36,14 +43,14 @@ export function MyAvailability() {
     unavailable: "Niedostępny",
     preferred: "Preferowany",
     "not-preferred": "Niepreferowany",
-    "leave-pending": "Urlop oczekujący",
-    "leave-approved": "Urlop zaakceptowany",
+    "leave-pending": "Urlop w trakcie akceptacji",
+    "leave-approved": "Urlop zatwierdzony",
   };
 
   const generateCalendarDays = () => {
     const days = [];
     const year = 2026;
-    const month = 4; // May (0-indexed)
+    const month = 4;
     const daysInMonth = new Date(year, month + 1, 0).getDate();
 
     for (let day = 1; day <= daysInMonth; day++) {
@@ -56,11 +63,25 @@ export function MyAvailability() {
   };
 
   const days = generateCalendarDays();
-  const selectedDay = selectedDate ? (pendingChanges[selectedDate] || availability[selectedDate]) : null;
+  const selectedDay = selectedDate ? (pendingChanges[selectedDate] ?? availability[selectedDate]) : null;
+  const hasPendingChanges = Object.keys(pendingChanges).length > 0;
+  const selectedDateLabel = selectedDate
+    ? new Date(`${selectedDate}T12:00:00`).toLocaleDateString("pl-PL", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+    : null;
+  const isSelectedDayManagedByLeave =
+    selectedDay?.status === "leave-approved" || selectedDay?.status === "leave-pending";
 
   const handleDayClick = (dateStr: string) => {
     if (deadlinePassed) return;
+
     setSelectedDate(dateStr);
+    setSaveFeedbackVisible(false);
+
     if (!availability[dateStr] && !pendingChanges[dateStr]) {
       setPendingChanges({
         ...pendingChanges,
@@ -70,177 +91,245 @@ export function MyAvailability() {
   };
 
   const updateSelectedDay = (updates: Partial<DayAvailability>) => {
-    if (!selectedDate || deadlinePassed) return;
-    const currentData = pendingChanges[selectedDate] || availability[selectedDate];
+    if (!selectedDate || deadlinePassed || isSelectedDayManagedByLeave) return;
+
+    const currentData = pendingChanges[selectedDate] ?? availability[selectedDate] ?? {
+      date: selectedDate,
+      status: "available" as const,
+      category: null,
+      comment: "",
+    };
+
     setPendingChanges({
       ...pendingChanges,
       [selectedDate]: { ...currentData, ...updates },
     });
+    setSaveFeedbackVisible(false);
   };
 
   const handleSave = () => {
-    if (deadlinePassed) return;
+    if (deadlinePassed || !hasPendingChanges) return;
+
     setAvailability((prev) => ({
       ...prev,
       ...pendingChanges,
     }));
     setPendingChanges({});
+    setSaveFeedbackVisible(true);
   };
 
   return (
     <div className="p-4 pb-20 md:pb-4">
-      <div className="mb-6">
-        <h2 className="text-2xl font-semibold text-gray-900">Moja dostępność</h2>
-        <p className="text-gray-600 mt-1">Maj 2026</p>
-      </div>
-
-      {deadlinePassed ? (
-        <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="flex gap-3">
-            <Info className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <h3 className="font-medium text-red-900">Termin zgłoszeń minął</h3>
-              <p className="text-sm text-red-700 mt-1">
-                Deadline upłynął {deadlineDate.toLocaleDateString("pl-PL")}. Nie można już edytować dostępności.
-              </p>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex gap-3">
-            <Calendar className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <h3 className="font-medium text-blue-900">Deadline: {deadlineDate.toLocaleDateString("pl-PL")}</h3>
-              <p className="text-sm text-blue-700 mt-1">
-                Uzupełnij swoją dostępność przed tym terminem
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="bg-white rounded-xl border border-gray-200 mb-4 overflow-hidden">
-        <div className="p-4 border-b border-gray-200">
-          <h3 className="font-semibold text-gray-900">Kalendarz</h3>
+      <div className="mx-auto max-w-4xl">
+        <div className="mb-6">
+          <h2 className="text-2xl font-semibold text-gray-900">Moja dostępność</h2>
+          <p className="mt-1 text-gray-600">Maj 2026</p>
         </div>
 
-        <div className="p-4">
-          <div className="grid grid-cols-7 gap-1 mb-2">
-            {["Pon", "Wt", "Śr", "Czw", "Pt", "Sob", "Niedz"].map((day) => (
-              <div key={day} className="text-center text-xs font-medium text-gray-600 py-2">
-                {day}
+        {deadlinePassed ? (
+          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4">
+            <div className="flex gap-3">
+              <Info className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-600" />
+              <div>
+                <h3 className="font-medium text-red-900">Termin zgłoszeń minął</h3>
+                <p className="mt-1 text-sm text-red-700">
+                  Deadline upłynął {deadlineDate.toLocaleDateString("pl-PL")}. Nie można już edytować dostępności.
+                </p>
               </div>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-7 gap-1">
-            {days.map(({ date, dayOfWeek, dayOfMonth }) => {
-              const dayData = availability[date];
-              const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-              const isSelected = selectedDate === date;
-
-              return (
-                <button
-                  key={date}
-                  onClick={() => handleDayClick(date)}
-                  disabled={deadlinePassed}
-                  className={`aspect-square p-1 rounded-lg border-2 text-sm transition-all ${
-                    isSelected
-                      ? "border-blue-500 ring-2 ring-blue-200"
-                      : dayData
-                      ? `border-transparent ${statusColors[dayData.status]}`
-                      : isWeekend
-                      ? "border-gray-200 bg-gray-50 text-gray-900"
-                      : "border-gray-200 hover:border-gray-300 text-gray-900"
-                  } ${deadlinePassed ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
-                >
-                  <div className="font-medium">{dayOfMonth}</div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-        <h3 className="font-semibold text-gray-900 mb-3">Legenda</h3>
-        <div className="grid grid-cols-2 gap-2 text-xs">
-          {Object.entries(statusLabels).map(([status, label]) => (
-            <div key={status} className="flex items-center gap-2">
-              <div className={`w-4 h-4 rounded border-2 ${statusColors[status as AvailabilityStatus]}`}></div>
-              <span className="text-gray-700">{label}</span>
             </div>
-          ))}
-        </div>
-      </div>
+          </div>
+        ) : (
+          <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
+            <div className="flex gap-3">
+              <Calendar className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600" />
+              <div>
+                <h3 className="font-medium text-blue-900">Deadline: {deadlineDate.toLocaleDateString("pl-PL")}</h3>
+                <p className="mt-1 text-sm text-blue-700">Wybierz dzień w kalendarzu i uzupełnij status lub preferencję.</p>
+              </div>
+            </div>
+          </div>
+        )}
 
-      {selectedDay && !deadlinePassed && (
-        <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-          <h3 className="font-semibold text-gray-900 mb-4">
-            Szczegóły dnia: {selectedDate}
-          </h3>
+        {saveFeedbackVisible && (
+          <div aria-live="polite" className="mb-4 rounded-lg border border-green-200 bg-green-50 p-4">
+            <div className="flex gap-3">
+              <CheckCircle2 className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600" />
+              <div>
+                <h3 className="font-medium text-green-900">Dostępność zapisana</h3>
+                <p className="mt-1 text-sm text-green-700">Zmiany zostały zapisane dla wybranych dni.</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(20rem,0.8fr)]">
+          <section className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+            <div className="border-b border-gray-200 p-4">
+              <h3 className="font-semibold text-gray-900">Kalendarz</h3>
+            </div>
+
+            <div className="p-3 sm:p-4">
+              <div className="mb-2 grid grid-cols-7 gap-1">
+                {["Pon", "Wt", "Śr", "Czw", "Pt", "Sob", "Niedz"].map((day) => (
+                  <div key={day} className="py-2 text-center text-[11px] font-medium text-gray-600 sm:text-xs">
+                    {day}
+                  </div>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-7 gap-1">
+                {days.map(({ date, dayOfWeek, dayOfMonth }) => {
+                  const dayData = pendingChanges[date] ?? availability[date];
+                  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+                  const isSelected = selectedDate === date;
+                  const label = dayData ? statusLabels[dayData.status] : "Brak ustawionego statusu";
+
+                  return (
+                    <button
+                      key={date}
+                      type="button"
+                      onClick={() => handleDayClick(date)}
+                      disabled={deadlinePassed}
+                      aria-pressed={isSelected}
+                      aria-label={`${new Date(`${date}T12:00:00`).toLocaleDateString("pl-PL", {
+                        day: "numeric",
+                        month: "long",
+                      })}, ${label}`}
+                      className={`aspect-square min-h-11 rounded-lg border-2 p-1 text-sm transition-all sm:min-h-12 ${
+                        isSelected
+                          ? "border-blue-500 ring-2 ring-blue-200"
+                          : dayData
+                            ? `border-transparent ${statusColors[dayData.status]}`
+                            : isWeekend
+                              ? "border-gray-200 bg-gray-50 text-gray-900"
+                              : "border-gray-200 text-gray-900 hover:border-gray-300"
+                      } ${deadlinePassed ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
+                    >
+                      <div className="font-medium">{dayOfMonth}</div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
 
           <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Status dostępności
-              </label>
-              <select
-                value={selectedDay.status}
-                onChange={(e) => updateSelectedDay({ status: e.target.value as AvailabilityStatus })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="available">Dostępny</option>
-                <option value="unavailable">Niedostępny</option>
-                <option value="preferred">Preferowany</option>
-                <option value="not-preferred">Niepreferowany</option>
-              </select>
-            </div>
-
-            {(selectedDay.status === "preferred" || selectedDay.status === "not-preferred") && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Kategoria preferencji
-                </label>
-                <select
-                  value={selectedDay.category || ""}
-                  onChange={(e) => updateSelectedDay({ category: (e.target.value || null) as any })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="">Wybierz kategorię</option>
-                  <option value="I">I - Wysoki priorytet</option>
-                  <option value="II">II - Średni priorytet</option>
-                  <option value="III">III - Niski priorytet</option>
-                </select>
+            <section className="rounded-xl border border-gray-200 bg-white p-4">
+              <h3 className="mb-3 font-semibold text-gray-900">Legenda</h3>
+              <div className="grid grid-cols-1 gap-2 text-xs sm:grid-cols-2">
+                {Object.entries(statusLabels).map(([status, label]) => (
+                  <div key={status} className="flex items-center gap-2">
+                    <div className={`h-4 w-4 rounded border-2 ${statusColors[status as AvailabilityStatus]}`} />
+                    <span className="text-gray-700">{label}</span>
+                  </div>
+                ))}
               </div>
+            </section>
+
+            {!selectedDay && !deadlinePassed && (
+              <section className="rounded-xl border border-dashed border-gray-300 bg-white p-4">
+                <h3 className="font-semibold text-gray-900">Wybierz dzień</h3>
+                <p className="mt-2 text-sm text-gray-600">
+                  Dotknij dzień w kalendarzu, aby ustawić dostępność, preferencję albo komentarz.
+                </p>
+              </section>
             )}
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Komentarz (opcjonalnie)
-              </label>
-              <textarea
-                value={selectedDay.comment}
-                onChange={(e) => updateSelectedDay({ comment: e.target.value })}
-                rows={3}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Dodaj notatkę..."
-              />
-            </div>
+            {selectedDay && (
+              <section className="rounded-xl border border-gray-200 bg-white p-4">
+                <h3 className="mb-1 font-semibold text-gray-900">Szczegóły dnia</h3>
+                <p className="mb-4 text-sm text-gray-600 capitalize">{selectedDateLabel}</p>
+
+                {isSelectedDayManagedByLeave ? (
+                  <div className="rounded-lg border border-purple-200 bg-purple-50 p-4">
+                    <div className="flex gap-3">
+                      <Info className="mt-0.5 h-5 w-5 flex-shrink-0 text-purple-600" />
+                      <div>
+                        <h4 className="font-medium text-purple-900">{statusLabels[selectedDay.status]}</h4>
+                        <p className="mt-1 text-sm text-purple-800">
+                          Ten dzień jest powiązany z wnioskiem urlopowym i nie edytujesz go z poziomu dostępności.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : deadlinePassed ? (
+                  <p className="text-sm text-gray-600">Okno edycji zostało już zamknięte.</p>
+                ) : (
+                  <div className="space-y-4">
+                    <div>
+                      <label htmlFor="availability-status" className="mb-2 block text-sm font-medium text-gray-700">
+                        Status dostępności
+                      </label>
+                      <select
+                        id="availability-status"
+                        value={selectedDay.status}
+                        onChange={(event) => updateSelectedDay({ status: event.target.value as AvailabilityStatus })}
+                        className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="available">Dostępny</option>
+                        <option value="unavailable">Niedostępny</option>
+                        <option value="preferred">Preferowany</option>
+                        <option value="not-preferred">Niepreferowany</option>
+                      </select>
+                    </div>
+
+                    {(selectedDay.status === "preferred" || selectedDay.status === "not-preferred") && (
+                      <div>
+                        <label htmlFor="availability-category" className="mb-2 block text-sm font-medium text-gray-700">
+                          Kategoria preferencji
+                        </label>
+                        <select
+                          id="availability-category"
+                          value={selectedDay.category ?? ""}
+                          onChange={(event) =>
+                            updateSelectedDay({
+                              category: (event.target.value || null) as DayAvailability["category"],
+                            })
+                          }
+                          className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="">Wybierz kategorię</option>
+                          <option value="I">I - wysoki priorytet</option>
+                          <option value="II">II - średni priorytet</option>
+                          <option value="III">III - niski priorytet</option>
+                        </select>
+                      </div>
+                    )}
+
+                    <div>
+                      <label htmlFor="availability-comment" className="mb-2 block text-sm font-medium text-gray-700">
+                        Komentarz
+                      </label>
+                      <textarea
+                        id="availability-comment"
+                        value={selectedDay.comment}
+                        onChange={(event) => updateSelectedDay({ comment: event.target.value })}
+                        rows={3}
+                        className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                        placeholder="Dodaj notatkę, jeśli chcesz wyjaśnić wybór."
+                      />
+                    </div>
+                  </div>
+                )}
+              </section>
+            )}
           </div>
         </div>
-      )}
 
-      {!deadlinePassed && (
-        <button
-          onClick={handleSave}
-          className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center gap-2"
-        >
-          <Save className="w-5 h-5" />
-          Zapisz dostępność
-        </button>
-      )}
+        {!deadlinePassed && (
+          <div className="sticky bottom-20 mt-6 border-t border-gray-200 bg-gray-50/95 px-1 py-4 backdrop-blur md:bottom-4">
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={!hasPendingChanges}
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 py-3 font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+            >
+              <Save className="h-5 w-5" />
+              {hasPendingChanges ? "Zapisz dostępność" : "Brak zmian do zapisania"}
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

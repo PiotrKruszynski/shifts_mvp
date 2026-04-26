@@ -1,6 +1,6 @@
 # Frontend Refactor Report
 
-Last updated: 2026-04-26 09:11Z
+Last updated: 2026-04-26 10:17Z
 Agent: Frontend Developer Agent
 Branch: `agent/frontend/02-frontend-refactor`
 Worktree: `/Users/piotr/projects/worktrees/shifts-02-frontend-refactor`
@@ -90,6 +90,16 @@ The standard shadcn/Radix `ui/` components were not modified.
 - No screenshot-level browser comparison was performed in this session; use UX Gate A for visual regression review against the Figma Make snapshot.
 - UX review should pay special attention to mixed Polish/English status labels preserved from the Figma import, especially Admin user statuses.
 
+## UX Gate A Polish Pass
+
+Applied a focused Phase 02 polish pass on branch `agent/frontend/02-ux-gate-a-polish` in worktree `/Users/piotr/projects/worktrees/shifts-02-ux-polish` to close only the UX Gate A blockers without entering mock-service scope:
+
+- sealed the doctor swap flow to published schedules only by separating the doctor fixture from the coordinator's generated schedule, guarding `/doctor/swap-request`, and hiding dashboard swap affordances until the doctor schedule is published;
+- improved the core doctor mobile flows on `/doctor/availability` and `/doctor/swap-request` with clearer step guidance, preselection from shift cards, empty states, read-only leave-day handling, and a sticky save action for availability;
+- normalized mixed PL/EN labels on high-traffic surfaces such as doctor/coordinator navigation, login, admin statuses, and form labels;
+- added minimum empty/conflict/success states in the reviewed areas, especially swap request, user table filtering, schedule validation, and doctor schedule/availability states;
+- fixed accessibility basics in the reviewed files: accessible names for icon-only controls, `htmlFor`/`id` label bindings, and dialog semantics for admin and doctor modal forms.
+
 ## Validation
 
 Commands run from `pwa/`:
@@ -106,6 +116,7 @@ Results:
 - `pnpm run typecheck`: passed with strict TypeScript.
 - `pnpm run lint`: passed with Biome.
 - `pnpm run build`: passed with Vite 6.3.5, 1,672 modules transformed.
+- After the UX Gate A polish pass, `typecheck`, `lint`, and `build` all passed again on the polish branch.
 - The same `typecheck`, `lint`, and `build` commands were re-run after merging `master`; all passed on the integrated tree.
 - No real API calls found in `pwa/src`, `pwa/package.json`, or `pwa/vite.config.ts`.
 

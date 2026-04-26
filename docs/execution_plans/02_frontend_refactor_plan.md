@@ -257,6 +257,14 @@ UX Designer should review:
 - Files changed: `pwa/**`, `docs/reports/frontend_refactor_report.md`, `docs/reports/figma_import_inventory.md`, `docs/open_questions.md`, `docs/execution_plans/01_figma_import_plan.md`, `docs/execution_plans/02_frontend_refactor_plan.md`.
 - Recommended next step: UX Gate A. Start `03_mock_api_plan.md` only after UX Gate A completes or receives a formal waiver from the Planning & Orchestration Agent.
 
+### UX Gate A Polish Pass
+
+- Branch/worktree: `agent/frontend/02-ux-gate-a-polish` at `/Users/piotr/projects/worktrees/shifts-02-ux-polish`.
+- Completed: published-only doctor swap gating, mobile doctor flow polish for availability and swap request, PL/EN label cleanup on reviewed surfaces, minimum empty/success/conflict states in reviewed areas, and accessibility basics for icon-only controls, labels, and dialogs.
+- Validation: `corepack pnpm install`, `corepack pnpm run typecheck`, `corepack pnpm run lint`, and `corepack pnpm run build` all passed from `pwa/` on 2026-04-26 after the polish pass.
+- Known issues: no browser screenshot regression run was performed in this polish branch; UX Gate A review artifacts should remain the source for final visual sign-off.
+- Recommended next step: merge the polish pass into the accepted Phase 02 frontend line before any Phase 03 mock-service work begins.
+
 ## Change log
 
 | Timestamp UTC | Agent | Change |
@@ -265,3 +273,4 @@ UX Designer should review:
 | 2026-04-26 07:41Z | Frontend Developer Agent | Recorded the completed Phase 02 refactor and validation handoff. |
 | 2026-04-26 09:11Z | Git Integrator Agent | Integrated local `master` into the Phase 02 branch, kept the refactored frontend versions for add/add conflicts, and refreshed the handoff after post-merge validation. |
 | 2026-04-26 09:16Z | Gitkeeper Agent | Approved operational closure for Phase 02, opened UX Gate A, and blocked Phase 03 until UX Gate A completes or is formally waived. |
+| 2026-04-26 10:17Z | Frontend Developer Agent | Recorded the UX Gate A polish pass covering published-only doctor swaps, doctor mobile flow fixes, reviewed empty/error/conflict states, label cleanup, and accessibility basics. |

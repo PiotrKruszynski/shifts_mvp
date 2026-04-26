@@ -3,24 +3,45 @@ interface SwapStepProgressProps {
 }
 
 export function SwapStepProgress({ step }: SwapStepProgressProps) {
+  const steps = [
+    { number: 1, label: "Twój dyżur" },
+    { number: 2, label: "Drugi lekarz" },
+    { number: 3, label: "Podsumowanie" },
+  ];
+
   return (
-    <div className="mb-6 flex items-center justify-between">
-      {[1, 2, 3].map((stepNumber) => (
-        <div key={stepNumber} className="flex items-center flex-1">
-          <div
-            className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
-              step >= stepNumber ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-600"
-            }`}
-          >
-            {stepNumber}
-          </div>
-          {stepNumber < 3 && (
-            <div
-              className={`flex-1 h-1 mx-2 ${step > stepNumber ? "bg-blue-600" : "bg-gray-200"}`}
-            ></div>
-          )}
-        </div>
-      ))}
-    </div>
+    <ol aria-label="Postęp zgłoszenia zamiany" className="mb-6 grid grid-cols-3 gap-2">
+      {steps.map(({ number, label }, index) => {
+        const completed = step > number;
+        const current = step === number;
+
+        return (
+          <li key={number} className="relative">
+            {index < steps.length - 1 && (
+              <div
+                aria-hidden="true"
+                className={`absolute left-[calc(50%+1.5rem)] top-5 hidden h-1 w-[calc(100%-2rem)] rounded-full sm:block ${
+                  completed ? "bg-blue-600" : "bg-gray-200"
+                }`}
+              />
+            )}
+
+            <div className="flex flex-col items-center gap-2 text-center">
+              <div
+                aria-current={current ? "step" : undefined}
+                className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold ${
+                  current || completed ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-600"
+                }`}
+              >
+                {number}
+              </div>
+              <span className={`text-xs sm:text-sm ${current ? "font-medium text-gray-900" : "text-gray-600"}`}>
+                {label}
+              </span>
+            </div>
+          </li>
+        );
+      })}
+    </ol>
   );
 }
