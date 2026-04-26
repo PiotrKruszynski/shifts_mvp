@@ -68,7 +68,7 @@ export function DoctorTable({ doctors }: DoctorTableProps) {
                     {doctor.qualificationNames.map((qualification) => (
                       <span
                         key={qualification}
-                        className="px-2 py-0.5 text-xs bg-blue-100 text-blue-800 rounded"
+                        className="whitespace-nowrap px-2 py-0.5 text-xs bg-blue-100 text-blue-800 rounded"
                       >
                         {qualification}
                       </span>

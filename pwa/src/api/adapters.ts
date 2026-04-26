@@ -12,6 +12,19 @@ import type { DoctorMetric } from "../services/metricsService";
 import type { ScheduleListItem, ScheduleStatusLabel } from "../services/scheduleService";
 import type { AdminUserListItem, AvailableCoordinator } from "../services/userService";
 
+const qualificationNamesById: Record<string, string> = {
+  "afaf7385-6019-549c-9c39-88fbf03f391e": "Choroby wewnętrzne",
+};
+
+const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+const qualificationName = (qualificationId: string) => {
+  const mappedName = qualificationNamesById[qualificationId];
+  if (mappedName) return mappedName;
+  if (uuidPattern.test(qualificationId)) return "Kwalifikacja medyczna";
+  return qualificationId;
+};
+
 type ApiAuditLogEntry = AuditLogEntry & {
   category?: ComplianceAuditEvent["category"];
   severity?: ComplianceAuditEvent["severity"];
@@ -86,7 +99,7 @@ export const toDoctorDirectoryEntry = (
     createdAt: "",
   },
   profile,
-  qualificationNames: profile.qualifications?.map((qualification) => qualification.qualificationId) ?? [],
+  qualificationNames: profile.qualifications?.map((qualification) => qualificationName(qualification.qualificationId)) ?? [],
   shiftsThisMonth,
   availabilitySubmitted,
 });

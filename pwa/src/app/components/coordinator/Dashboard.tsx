@@ -5,6 +5,59 @@ import { scheduleService } from "../../../services/scheduleService";
 import { ScheduleStatusBadge } from "../shared/ScheduleStatusBadge";
 import { MetricCard } from "../shared/MetricCard";
 
+const millisecondsPerDay = 1000 * 60 * 60 * 24;
+
+const parseDeadlineDate = (deadline: string) => {
+  const [year, month, day] = deadline.split("-").map(Number);
+
+  if (Number.isInteger(year) && Number.isInteger(month) && Number.isInteger(day)) {
+    return new Date(year, month - 1, day);
+  }
+
+  const parsed = new Date(deadline);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
+
+const calendarDay = (value: Date) => Date.UTC(value.getFullYear(), value.getMonth(), value.getDate());
+
+const formatDeadlineValue = (daysUntilDeadline: number) => {
+  if (daysUntilDeadline === 0) return "Dzisiaj";
+  if (daysUntilDeadline === 1) return "1 dzień";
+  return `${daysUntilDeadline} dni`;
+};
+
+const deadlineState = (deadline: string) => {
+  const deadlineDate = parseDeadlineDate(deadline);
+
+  if (deadlineDate === null) {
+    return {
+      daysUntilDeadline: 0,
+      isPast: false,
+      isSoon: false,
+      metricValue: "Brak daty",
+      warningText: "",
+    };
+  }
+
+  const calendarDaysUntilDeadline = Math.round(
+    (calendarDay(deadlineDate) - calendarDay(new Date())) / millisecondsPerDay,
+  );
+  const daysUntilDeadline = Math.max(0, calendarDaysUntilDeadline);
+  const isPast = calendarDaysUntilDeadline < 0;
+  const isSoon = !isPast && daysUntilDeadline <= 3;
+
+  return {
+    daysUntilDeadline,
+    isPast,
+    isSoon,
+    metricValue: isPast ? "Termin minął" : formatDeadlineValue(daysUntilDeadline),
+    warningText:
+      daysUntilDeadline === 0
+        ? `Termin zgłoszeń dostępności mija dzisiaj (${deadline})`
+        : `Termin zgłoszeń dostępności mija za ${formatDeadlineValue(daysUntilDeadline)} (${deadline})`,
+  };
+};
+
 export function Dashboard() {
   const scheduleState = useAsyncResource(() => scheduleService.getCoordinatorDashboardSchedule(), []);
 
@@ -17,9 +70,7 @@ export function Dashboard() {
   }
 
   const currentSchedule = scheduleState.data;
-
-  const upcomingDeadline = new Date(currentSchedule.deadline).getTime() - Date.now();
-  const daysUntilDeadline = Math.ceil(upcomingDeadline / (1000 * 60 * 60 * 24));
+  const availabilityDeadline = deadlineState(currentSchedule.deadline);
 
   return (
     <div className="p-4 md:p-8">
@@ -27,14 +78,12 @@ export function Dashboard() {
         <h1 className="text-2xl md:text-3xl font-semibold text-gray-900">Oddział Chirurgii</h1>
       </div>
 
-      {daysUntilDeadline <= 3 && daysUntilDeadline > 0 && (
+      {availabilityDeadline.isSoon && (
         <div className="mb-6 bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-start gap-3">
           <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
           <div>
             <h3 className="font-medium text-amber-900">Zbliżający się deadline</h3>
-            <p className="text-sm text-amber-800 mt-1">
-              Termin zgłoszeń dostępności mija za {daysUntilDeadline} dni ({currentSchedule.deadline})
-            </p>
+            <p className="text-sm text-amber-800 mt-1">{availabilityDeadline.warningText}</p>
           </div>
         </div>
       )}
@@ -50,10 +99,10 @@ export function Dashboard() {
 
         <MetricCard
           title="Deadline dostępności"
-          value={`${daysUntilDeadline} dni`}
+          value={availabilityDeadline.metricValue}
           subtitle={currentSchedule.deadline}
           icon={Clock}
-          variant={daysUntilDeadline <= 3 ? "warning" : "normal"}
+          variant={availabilityDeadline.isSoon ? "warning" : "normal"}
         />
 
         <MetricCard

@@ -3,12 +3,35 @@ import { useNavigate } from "react-router";
 import { Calendar, Users } from "lucide-react";
 import { scheduleService } from "../../../services/scheduleService";
 
+const deadlineErrorMessage = "Podaj poprawną datę deadline’u.";
+const minimumDeadlineDate = "2000-01-01";
+const maximumDeadlineDate = "2099-12-31";
+const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+
+const isValidCalendarDate = (value: string) => {
+  if (!datePattern.test(value)) {
+    return false;
+  }
+
+  const [year, month, day] = value.split("-").map(Number);
+  const parsedDate = new Date(Date.UTC(year, month - 1, day));
+
+  return (
+    parsedDate.getUTCFullYear() === year &&
+    parsedDate.getUTCMonth() === month - 1 &&
+    parsedDate.getUTCDate() === day &&
+    value >= minimumDeadlineDate &&
+    value <= maximumDeadlineDate
+  );
+};
+
 export function CreateSchedule() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     month: "",
     deadline: "",
   });
+  const [deadlineError, setDeadlineError] = useState("");
 
   const generateUpcomingMonths = () => {
     const months = [];
@@ -32,6 +55,11 @@ export function CreateSchedule() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isValidCalendarDate(formData.deadline)) {
+      setDeadlineError(deadlineErrorMessage);
+      return;
+    }
+
     const schedule = await scheduleService.createMonthlySchedule({
       month: formData.month,
       availabilityDeadline: formData.deadline,
@@ -75,20 +103,41 @@ export function CreateSchedule() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="availability-deadline" className="block text-sm font-medium text-gray-700 mb-2">
                 Deadline zgłoszeń dostępności
               </label>
               <div className="relative">
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
+                  id="availability-deadline"
                   type="date"
                   value={formData.deadline}
-                  onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  onChange={(e) => {
+                    setFormData({ ...formData, deadline: e.target.value });
+                    if (deadlineError) {
+                      setDeadlineError("");
+                    }
+                  }}
+                  onInvalid={(e) => {
+                    e.preventDefault();
+                    setDeadlineError(deadlineErrorMessage);
+                  }}
+                  min={minimumDeadlineDate}
+                  max={maximumDeadlineDate}
+                  aria-invalid={deadlineError ? "true" : undefined}
+                  aria-describedby={deadlineError ? "availability-deadline-error" : "availability-deadline-hint"}
+                  className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                    deadlineError ? "border-red-300" : "border-gray-300"
+                  }`}
                   required
                 />
               </div>
-              <p className="text-sm text-gray-600 mt-2">
+              {deadlineError && (
+                <p id="availability-deadline-error" className="text-sm text-red-700 mt-2">
+                  {deadlineError}
+                </p>
+              )}
+              <p id="availability-deadline-hint" className="text-sm text-gray-600 mt-2">
                 Lekarze będą mogli zgłaszać dostępność do tej daty
               </p>
             </div>
