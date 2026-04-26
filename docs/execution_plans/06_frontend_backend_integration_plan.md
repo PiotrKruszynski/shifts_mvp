@@ -216,11 +216,15 @@ UX Designer should review:
 ## Handoff
 
 - Branch/worktree:
+- Base branch:
+- Current HEAD:
+- Contains master: yes/no
 - Completed:
 - Validation:
+- Files changed:
 - Known issues:
 - Open questions:
-- Files changed:
+- Gate decision:
 - Recommended next step:
 
 ## Change log
