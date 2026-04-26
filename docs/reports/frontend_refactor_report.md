@@ -109,6 +109,6 @@ Results:
 - The same `typecheck`, `lint`, and `build` commands were re-run after merging `master`; all passed on the integrated tree.
 - No real API calls found in `pwa/src`, `pwa/package.json`, or `pwa/vite.config.ts`.
 
-## Phase 03 Recommendation
+## Next Gate
 
-Proceed to Phase 03 mock API. The next phase should replace fixtures with a mock service boundary without changing component visuals.
+Proceed to UX Gate A. Start Phase 03 mock API only after UX Gate A completes, or after a formal waiver from the Planning & Orchestration Agent. The next implementation phase should replace fixtures with a mock service boundary without changing component visuals.

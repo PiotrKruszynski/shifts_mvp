@@ -23,7 +23,9 @@ If filenames differ from this list, agents must use the files that actually exis
 
 | Agent | Primary role | Must not do |
 |---|---|---|
-| Planning & Orchestration Agent | Own sequencing, branch/worktree setup, handoffs, merge gates and scope control. | Implement product code directly. |
+| Planning & Orchestration Agent | Own sequencing, branch/worktree setup, handoffs, merge gates and scope control. Resolve ownership, blockers and advancement decisions between agents. | Implement product code directly. |
+| Git Integrator Agent | Integrate the current integration branch into an active phase branch, preserve local phase work, resolve merge conflicts and restore worktree consistency after merge. | Introduce new product scope or perform unrelated refactors while merging. |
+| Gitkeeper Agent | Decide whether a phase is operationally closed and may advance to the next gate. For phase 02, explicitly block phase 03 until UX Gate A is legitimately open. | Wave through a phase with stale branch state, missing validation or incomplete handoff. |
 | Frontend Developer Agent | Import Figma Make React, refactor PWA, create mock services and integrate frontend with API. | Implement backend persistence or change domain scope. |
 | Backend Developer Agent | Align and implement FastAPI backend from `docs/architecture/openapi.yaml`, using SQLite per ADR. | Rewrite frontend or invent non-contract endpoints. |
 | UX Designer Agent | Review flows, usability, accessibility basics and role-specific UX. | Add product scope or rewrite architecture. |
@@ -63,7 +65,7 @@ If `main` is not the integration branch, the Orchestration Agent must replace it
 | Phase | Plan | Owner agent | Output | Merge gate |
 |---|---|---|---|---|
 | 1 | `01_figma_import_plan.md` | Frontend Developer | Figma Make React code imported into `pwa/` as a controlled snapshot. | PWA renders imported UI and builds. |
-| 2 | `02_frontend_refactor_plan.md` | Frontend Developer | React structure, feature components and domain types are maintainable. | Build/typecheck pass; UX review can start. |
+| 2 | `02_frontend_refactor_plan.md` | Frontend Developer | React structure, feature components and domain types are maintainable. | Build/typecheck pass; branch is synced with the current integration branch; Gitkeeper approves UX Gate A. |
 | UX Gate A | Orchestrator-created UX worktree | UX Designer | UX review of imported/refactored role flows. | Blocking UX issues are logged before phase 3. |
 | 3 | `03_mock_api_plan.md` | Frontend Developer | Async mock service layer replaces inline business data. | UI consumes services, not JSX-level data. |
 | 4 | `04_openapi_alignment_plan.md` | Backend Developer with Frontend review | `docs/architecture/openapi.yaml` matches MVP flows and service contracts. | Contract validates and maps to services. |
@@ -104,12 +106,20 @@ Each phase must end with this section completed in the relevant phase plan:
 
 The next agent starts by reading the previous handoff, checking the merge gate and confirming that its own worktree is based on the current integration branch.
 
+For phase 02 specifically:
+
+- Git Integrator Agent owns the `master` -> `agent/frontend/02-frontend-refactor` integration work and any required merge-conflict cleanup in the phase 02 worktree.
+- Gitkeeper Agent decides whether phase 02 is truly closed after that integration.
+- Phase 03 must not start until Gitkeeper records that phase 02 is operationally consistent, validated and ready for UX Gate A.
+
 ## Stop conditions
 
 The Orchestration Agent must pause or reject a merge when:
 
 - the agent worked outside its assigned scope;
 - the worktree is not based on the expected integration branch;
+- the phase branch still contains critical delivery artifacts as uncommitted or untracked local work when requesting advancement;
+- a merge from the current integration branch is still pending for a phase that depends on earlier merged output;
 - validation commands fail and the defect is outside the current phase scope;
 - implementation contradicts `docs/architecture/project_assumptions.md`, `docs/architecture/domain_model.md`, `docs/architecture/user_flow.mmd` or accepted ADRs;
 - a required architecture decision is missing;
@@ -120,4 +130,5 @@ The Orchestration Agent must pause or reject a merge when:
 
 | Timestamp UTC | Agent | Change |
 |---|---|---|
+| 2026-04-26 09:09Z | Planning & Orchestration Agent | Added Git Integrator and Gitkeeper roles plus phase 02 advancement guardrails. |
 | YYYY-MM-DD HH:MMZ | Planning & Orchestration Agent | Initial English orchestration plan with worktree-based agent isolation. |

@@ -6,7 +6,7 @@ Orchestrated by: Planning & Orchestration Agent
 Worktree branch: `agent/frontend/02-frontend-refactor`
 Recommended worktree: `../worktrees/shifts-02-frontend-refactor`
 Depends on: `01_figma_import_plan.md`
-Next: `03_mock_api_plan.md`
+Next: UX Gate A, then `03_mock_api_plan.md`
 Last updated: 2026-04-26 09:11Z
 
 ## Objective
@@ -255,7 +255,7 @@ UX Designer should review:
 - Open questions: none added in this phase.
 - UX Gate A readiness: ready. Review mixed PL/EN labels preserved from the Figma import and responsive behavior for doctor mobile views.
 - Files changed: `pwa/**`, `docs/reports/frontend_refactor_report.md`, `docs/reports/figma_import_inventory.md`, `docs/open_questions.md`, `docs/execution_plans/01_figma_import_plan.md`, `docs/execution_plans/02_frontend_refactor_plan.md`.
-- Recommended next step: Phase 03 mock API.
+- Recommended next step: UX Gate A. Start `03_mock_api_plan.md` only after UX Gate A completes or receives a formal waiver from the Planning & Orchestration Agent.
 
 ## Change log
 
@@ -264,3 +264,4 @@ UX Designer should review:
 | YYYY-MM-DD HH:MMZ | Frontend Developer Agent | Initial English frontend refactor plan. |
 | 2026-04-26 07:41Z | Frontend Developer Agent | Recorded the completed Phase 02 refactor and validation handoff. |
 | 2026-04-26 09:11Z | Git Integrator Agent | Integrated local `master` into the Phase 02 branch, kept the refactored frontend versions for add/add conflicts, and refreshed the handoff after post-merge validation. |
+| 2026-04-26 09:16Z | Gitkeeper Agent | Approved operational closure for Phase 02, opened UX Gate A, and blocked Phase 03 until UX Gate A completes or is formally waived. |
