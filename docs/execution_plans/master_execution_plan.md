@@ -64,6 +64,18 @@ Each phase:
 - runs in its own worktree
 - runs on its own branch
 - must be based on current `master`
+- must have a matching remote branch on `origin`
+- must keep phase work on the phase branch until the phase is accepted
+
+Phase branch visibility rules:
+
+- create the local phase branch from current `master` before work starts;
+- push the phase branch to `origin` so it is visible on GitHub;
+- do phase work on the phase branch, not directly on `master`;
+- do not push only `master` as the record of phase work;
+- after phase acceptance, merge the phase branch into `master`;
+- push `master` after the accepted merge;
+- do not delete remote phase branches without a separate explicit decision.
 
 ### Naming
 
@@ -105,6 +117,7 @@ Each phase:
 A phase may be merged ONLY if:
 
 - branch contains current `master`;
+- branch has been pushed to `origin`;
 - `git status` is clean;
 - no untracked deliverables exist;
 - all work is committed;
@@ -121,6 +134,7 @@ Each phase must end with this section completed in the relevant phase plan:
 ```md
 ## Handoff
 - Branch/worktree:
+- Remote branch:
 - Base branch:
 - Current HEAD:
 - Contains master: yes/no
