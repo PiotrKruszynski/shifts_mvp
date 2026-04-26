@@ -1,6 +1,6 @@
 # Open Questions
 
-Last updated: 2026-04-25 21:39Z
+Last updated: 2026-04-26 07:53Z
 
 ## OQ-001 - Prompt path mismatch vs repository paths
 
@@ -91,7 +91,7 @@ Follow-up:
 
 ## OQ-005 - Codex MCP resource body access for phase 01 import
 
-Status: Open
+Status: Resolved
 
 Phase 01 requires complete Figma Make source file bodies, not only MCP resource references.
 
@@ -107,3 +107,9 @@ Blocking impact:
 
 - Phase 01 cannot safely import into `pwa/` from this Codex session without guessing missing generated source files;
 - the next run must use a client/session that can both call Figma MCP and read the returned `mcp-resource://...` file bodies, or provide a complete local Figma Make export/source snapshot.
+
+Resolution:
+
+- on 2026-04-26, the Figma Make source snapshot was provided locally under `pwa/`;
+- the local snapshot includes role components, UI primitives, styles, package/config files, guidelines and import documentation;
+- Phase 01 could continue from the local snapshot without guessing MCP resource bodies.
