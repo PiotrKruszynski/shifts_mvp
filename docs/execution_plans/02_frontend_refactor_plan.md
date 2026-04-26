@@ -1,13 +1,13 @@
 # 02 — Frontend Refactor and Domain Typing Plan
 
-Status: Living Draft
+Status: Complete
 Owner: Frontend Developer Agent
 Orchestrated by: Planning & Orchestration Agent
 Worktree branch: `agent/frontend/02-frontend-refactor`
 Recommended worktree: `../worktrees/shifts-02-frontend-refactor`
 Depends on: `01_figma_import_plan.md`
 Next: `03_mock_api_plan.md`
-Last updated: YYYY-MM-DD HH:MMZ
+Last updated: 2026-04-26 07:41Z
 
 ## Objective
 
@@ -65,6 +65,12 @@ cd ../worktrees/shifts-02-frontend-refactor
 ```
 
 Use the integration branch that contains the merged phase 01 result.
+
+Execution note, 2026-04-26 07:41Z: Phase 02 was executed in
+`/Users/piotr/projects/worktrees/shifts-02-frontend-refactor` on
+`agent/frontend/02-frontend-refactor`. The local Phase 01 branch did not yet
+contain the imported `pwa/` snapshot in a commit, so the current Phase 01
+snapshot was copied into this worktree before refactoring.
 
 ## Dynamic update protocol
 
@@ -134,48 +140,48 @@ Types must reflect `docs/architecture/domain_model.md`; do not invent new domain
 
 ### A. Preflight
 
-- [ ] (YYYY-MM-DD HH:MMZ) Confirm branch/worktree: `agent/frontend/02-frontend-refactor`.
-- [ ] (YYYY-MM-DD HH:MMZ) Read phase 01 handoff and import inventory.
-- [ ] (YYYY-MM-DD HH:MMZ) Inspect imported components and identify monoliths, duplicated UI and role-specific views.
-- [ ] (YYYY-MM-DD HH:MMZ) Run the current frontend build before refactoring to establish baseline behavior.
+- [x] (2026-04-26 07:41Z) Confirm branch/worktree: `agent/frontend/02-frontend-refactor`.
+- [x] (2026-04-26 07:41Z) Read phase 01 handoff and import inventory.
+- [x] (2026-04-26 07:41Z) Inspect imported components and identify monoliths, duplicated UI and role-specific views.
+- [x] (2026-04-26 07:41Z) Run the current frontend build before refactoring to establish baseline behavior.
 
 ### B. Structure cleanup
 
-- [ ] (YYYY-MM-DD HH:MMZ) Split oversized Figma-generated components into smaller role or feature components.
-- [ ] (YYYY-MM-DD HH:MMZ) Keep visual behavior close to the imported Figma design.
-- [ ] (YYYY-MM-DD HH:MMZ) Remove temporary preview wrappers only if routing can render the same UI cleanly.
-- [ ] (YYYY-MM-DD HH:MMZ) Consolidate repeated simple visual elements into `shared/` or `ui/` components without overengineering.
-- [ ] (YYYY-MM-DD HH:MMZ) Keep design-system-level changes minimal and documented.
+- [x] (2026-04-26 07:41Z) Split oversized Figma-generated components into smaller role or feature components.
+- [x] (2026-04-26 07:41Z) Keep visual behavior close to the imported Figma design.
+- [x] (2026-04-26 07:41Z) Remove temporary preview wrappers only if routing can render the same UI cleanly.
+- [x] (2026-04-26 07:41Z) Consolidate repeated simple visual elements into `shared/` or `ui/` components without overengineering.
+- [x] (2026-04-26 07:41Z) Keep design-system-level changes minimal and documented.
 
 ### C. TypeScript domain types
 
-- [ ] (YYYY-MM-DD HH:MMZ) Create the frontend domain type module.
-- [ ] (YYYY-MM-DD HH:MMZ) Replace untyped object literals in component props with typed props.
-- [ ] (YYYY-MM-DD HH:MMZ) Align status and enum strings with `docs/architecture/domain_model.md` and `docs/architecture/openapi.yaml`.
-- [ ] (YYYY-MM-DD HH:MMZ) Add helper types only when they reduce duplication.
-- [ ] (YYYY-MM-DD HH:MMZ) Record any mismatch between Figma labels and domain terminology.
+- [x] (2026-04-26 07:41Z) Create the frontend domain type module.
+- [x] (2026-04-26 07:41Z) Replace untyped object literals in component props with typed props.
+- [x] (2026-04-26 07:41Z) Align status and enum strings with `docs/architecture/domain_model.md` and `docs/architecture/openapi.yaml`.
+- [x] (2026-04-26 07:41Z) Add helper types only when they reduce duplication.
+- [x] (2026-04-26 07:41Z) Record any mismatch between Figma labels and domain terminology.
 
 ### D. Temporary data cleanup
 
-- [ ] (YYYY-MM-DD HH:MMZ) Move large inline arrays/objects out of JSX into feature-local fixtures.
-- [ ] (YYYY-MM-DD HH:MMZ) Do not create final `services/` yet unless the repository already requires it.
-- [ ] (YYYY-MM-DD HH:MMZ) Keep data deterministic and representative of MVP flows.
-- [ ] (YYYY-MM-DD HH:MMZ) Mark any unrealistic Figma sample data for replacement in phase 03.
+- [x] (2026-04-26 07:41Z) Move large inline arrays/objects out of JSX into feature-local fixtures.
+- [x] (2026-04-26 07:41Z) Do not create final `services/` yet unless the repository already requires it.
+- [x] (2026-04-26 07:41Z) Keep data deterministic and representative of MVP flows.
+- [x] (2026-04-26 07:41Z) Mark any unrealistic Figma sample data for replacement in phase 03.
 
 ### E. Role flow sanity check
 
-- [ ] (YYYY-MM-DD HH:MMZ) Confirm Admin, Coordinator and Doctor views are separated at component/routing level.
-- [ ] (YYYY-MM-DD HH:MMZ) Confirm Coordinator views are desktop-first and Doctor views are mobile-first where applicable.
-- [ ] (YYYY-MM-DD HH:MMZ) Confirm published schedule UI does not suggest ordinary assignment editing.
-- [ ] (YYYY-MM-DD HH:MMZ) Confirm shift swap UI appears only as a post-publication flow.
-- [ ] (YYYY-MM-DD HH:MMZ) Prepare UX handoff notes for UX Designer Gate A.
+- [x] (2026-04-26 07:41Z) Confirm Admin, Coordinator and Doctor views are separated at component/routing level.
+- [x] (2026-04-26 07:41Z) Confirm Coordinator views are desktop-first and Doctor views are mobile-first where applicable.
+- [x] (2026-04-26 07:41Z) Confirm published schedule UI does not suggest ordinary assignment editing.
+- [x] (2026-04-26 07:41Z) Confirm shift swap UI appears only as a post-publication flow.
+- [x] (2026-04-26 07:41Z) Prepare UX handoff notes for UX Designer Gate A.
 
 ### F. Validation and report
 
-- [ ] (YYYY-MM-DD HH:MMZ) Run frontend build.
-- [ ] (YYYY-MM-DD HH:MMZ) Run typecheck if configured.
-- [ ] (YYYY-MM-DD HH:MMZ) Run lint if configured.
-- [ ] (YYYY-MM-DD HH:MMZ) Create `docs/reports/frontend_refactor_report.md` with changed structure, remaining risks and phase 03 recommendations.
+- [x] (2026-04-26 07:41Z) Run frontend build.
+- [x] (2026-04-26 07:41Z) Run typecheck if configured.
+- [x] (2026-04-26 07:41Z) Run lint if configured.
+- [x] (2026-04-26 07:41Z) Create `docs/reports/frontend_refactor_report.md` with changed structure, remaining risks and phase 03 recommendations.
 
 ## Validation commands
 
@@ -233,11 +239,13 @@ UX Designer should review:
 
 ## Handoff
 
-- Branch/worktree:
-- Completed:
-- Validation:
-- Known issues:
-- Open questions:
+- Branch/worktree: `agent/frontend/02-frontend-refactor` at `/Users/piotr/projects/worktrees/shifts-02-frontend-refactor`.
+- Completed: package hygiene, strict TypeScript setup, Biome lint setup, canonical frontend domain types, typed fixtures, oversized component split, cleanup of unused Figma files, and role-flow sanity check.
+- Validation: `corepack pnpm run build`, `corepack pnpm run typecheck`, and `corepack pnpm run lint` passed from `pwa/`. Vite build transformed 1,672 modules.
+- Known issues: no screenshot-level browser comparison was run; UX Gate A should perform formal visual review. Phase 01 import was copied from the prior worktree because it was not committed in the source branch at execution time.
+- Open questions: none added in this phase.
+- UX Gate A readiness: ready. Review mixed PL/EN labels preserved from the Figma import and responsive behavior for doctor mobile views.
+- Recommended next step: Phase 03 mock API.
 - Files changed:
 - Recommended next step:
 
