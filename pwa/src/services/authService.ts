@@ -1,5 +1,5 @@
 import type { Role } from "../domain/types";
-import { apiRequest, authTokenStore } from "../api/client";
+import { ApiError, apiRequest, authTokenStore } from "../api/client";
 import { shouldUseMockApi } from "../api/config";
 import { mockMutate } from "./mockTransport";
 
@@ -22,16 +22,10 @@ export interface InvitationSignupInput {
   password: string;
 }
 
-const resolveSession = (email: string): AuthSession => {
-  if (email.includes("coordinator") || email.includes("koordynator")) {
-    return { userId: "user-coordinator-jan", role: "COORDINATOR", redirectPath: "/coordinator" };
-  }
-
-  if (email.includes("admin")) {
-    return { userId: "user-admin-piotr", role: "ADMIN", redirectPath: "/admin" };
-  }
-
-  return { userId: "user-doctor-anna", role: "DOCTOR", redirectPath: "/doctor" };
+const demoAccounts: Record<string, Pick<AuthSession, "role" | "redirectPath" | "userId">> = {
+  "admin@hospital.pl": { userId: "user-admin-piotr", role: "ADMIN", redirectPath: "/admin" },
+  "coordinator@hospital.pl": { userId: "user-coordinator-jan", role: "COORDINATOR", redirectPath: "/coordinator" },
+  "doctor@hospital.pl": { userId: "user-doctor-anna", role: "DOCTOR", redirectPath: "/doctor" },
 };
 
 const loginAliases: Record<string, string> = {
@@ -44,6 +38,32 @@ const redirectForRole: Record<Role, string> = {
   ADMIN: "/admin",
   COORDINATOR: "/coordinator",
   DOCTOR: "/doctor",
+};
+
+const demoLogin = (input: LoginInput): AuthSession => {
+  const email = input.email.trim().toLowerCase();
+  const session = demoAccounts[email];
+
+  if (!session || input.password !== "password123") {
+    throw new ApiError(401, "INVALID_DEMO_CREDENTIALS", "Nieprawidłowy e-mail lub hasło demo.");
+  }
+
+  // Demo-only fallback for public frontend deployments without a configured backend URL.
+  authTokenStore.save(`demo-token:${session.userId}`, `demo-refresh-token:${session.userId}`);
+  return session;
+};
+
+const demoSignupSession = (email: string): AuthSession => {
+  const normalizedEmail = email.trim().toLowerCase();
+  const session = demoAccounts[normalizedEmail]
+    ?? (normalizedEmail.includes("coordinator")
+      ? demoAccounts["coordinator@hospital.pl"]
+      : normalizedEmail.includes("admin")
+        ? demoAccounts["admin@hospital.pl"]
+        : demoAccounts["doctor@hospital.pl"]);
+
+  authTokenStore.save(`demo-token:${session.userId}`, `demo-refresh-token:${session.userId}`);
+  return session;
 };
 
 const toSession = (response: {
@@ -67,7 +87,7 @@ const toSession = (response: {
 export const authService = {
   async login(input: LoginInput): Promise<AuthSession> {
     if (shouldUseMockApi()) {
-      return mockMutate(() => resolveSession(input.email));
+      return mockMutate(() => demoLogin(input));
     }
 
     const email = loginAliases[input.email.toLowerCase()] ?? input.email;
@@ -77,6 +97,10 @@ export const authService = {
         body: { email, password: input.password },
       }),
     );
+  },
+
+  logout(): void {
+    authTokenStore.clear();
   },
 
   resetPassword(email: string): Promise<{ email: string; sent: true }> {
@@ -92,7 +116,7 @@ export const authService = {
 
   async completeInvitationSignup(input: InvitationSignupInput): Promise<AuthSession> {
     if (shouldUseMockApi()) {
-      return mockMutate(() => resolveSession(input.email));
+      return mockMutate(() => demoSignupSession(input.email));
     }
 
     return toSession(

@@ -1,6 +1,7 @@
 import { Outlet, Link, useLocation, useNavigate } from "react-router";
 import { Home, Calendar, FileText, Bell, Menu, X, LogOut } from "lucide-react";
 import { useState } from "react";
+import { authService } from "../../../services/authService";
 
 export function DoctorLayout() {
   const location = useLocation();
@@ -14,6 +15,7 @@ export function DoctorLayout() {
   };
 
   const handleLogout = () => {
+    authService.logout();
     navigate("/");
   };
 

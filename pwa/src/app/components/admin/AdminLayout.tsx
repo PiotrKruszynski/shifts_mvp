@@ -1,6 +1,7 @@
 import { Outlet, Link, useLocation, useNavigate } from "react-router";
 import { Users, Building2, Settings, Shield, Menu, X, LogOut } from "lucide-react";
 import { useState } from "react";
+import { authService } from "../../../services/authService";
 
 export function AdminLayout() {
   const location = useLocation();
@@ -14,6 +15,7 @@ export function AdminLayout() {
   };
 
   const handleLogout = () => {
+    authService.logout();
     navigate("/");
   };
 

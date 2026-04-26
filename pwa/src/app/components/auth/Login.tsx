@@ -7,11 +7,18 @@ export function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const session = await authService.login({ email, password });
-    navigate(session.redirectPath);
+    setLoginError("");
+
+    try {
+      const session = await authService.login({ email, password });
+      navigate(session.redirectPath);
+    } catch (error) {
+      setLoginError(error instanceof Error ? error.message : "Nie udało się zalogować.");
+    }
   };
 
   return (
@@ -39,7 +46,10 @@ export function Login() {
                   id="login-email"
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (loginError) setLoginError("");
+                  }}
                   autoComplete="email"
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="twoj.email@hospital.pl"
@@ -58,7 +68,10 @@ export function Login() {
                   id="login-password"
                   type="password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (loginError) setLoginError("");
+                  }}
                   autoComplete="current-password"
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="••••••••"
@@ -83,6 +96,12 @@ export function Login() {
                 Zapomniałeś hasła?
               </Link>
             </div>
+
+            {loginError && (
+              <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                {loginError}
+              </p>
+            )}
 
             <button
               type="submit"

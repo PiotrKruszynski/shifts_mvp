@@ -1,6 +1,7 @@
 import { Outlet, Link, useLocation, useNavigate } from "react-router";
 import { Calendar, Users, FileText, RefreshCw, BarChart3, Shield, Home, Menu, X, LogOut } from "lucide-react";
 import { useState } from "react";
+import { authService } from "../../../services/authService";
 
 export function CoordinatorLayout() {
   const location = useLocation();
@@ -14,6 +15,7 @@ export function CoordinatorLayout() {
   };
 
   const handleLogout = () => {
+    authService.logout();
     navigate("/");
   };
 
