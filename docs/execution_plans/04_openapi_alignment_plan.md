@@ -56,7 +56,7 @@ Align `docs/architecture/openapi.yaml` with the MVP product scope, domain model,
 
 ```bash
 git fetch --all --prune
-git worktree add ../worktrees/shifts-04-openapi-alignment -b agent/backend/04-openapi-alignment main
+git worktree add ../worktrees/shifts-04-openapi-alignment -b agent/backend/04-openapi-alignment master
 cd ../worktrees/shifts-04-openapi-alignment
 ```
 
