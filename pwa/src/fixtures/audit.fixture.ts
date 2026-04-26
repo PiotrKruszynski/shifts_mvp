@@ -49,7 +49,7 @@ export const complianceAuditEventsFixture: ComplianceAuditEventFixture[] = [
     resourceLabel: "Grafik Maj 2026",
     ipAddress: "192.168.1.45",
     details:
-      "Przypisał Dr Piotr Zieliński do dyżuru 10.05.2026 mimo preferencji 'Niepreferowany' (Kategoria II). Uzasadnienie: Brak alternatywnych lekarzy z wymaganymi kwalifikacjami.",
+      "Przypisał Dr Piotr Zieliński do dyżuru 10.05.2026 mimo preferencji 'Niechętnie' (Kategoria II). Uzasadnienie: Brak alternatywnych lekarzy z wymaganymi kwalifikacjami.",
   },
   {
     entry: {

@@ -33,21 +33,21 @@ export function MyAvailability() {
   const deadlinePassed = Date.now() > deadlineDate.getTime();
 
   const statusColors: Record<AvailabilityStatus, string> = {
-    available: "bg-green-100 border-green-300 text-green-800",
+    available: "bg-gray-50 border-gray-200 text-gray-600",
     unavailable: "bg-red-100 border-red-300 text-red-800",
-    preferred: "bg-blue-100 border-blue-300 text-blue-800",
+    preferred: "bg-green-100 border-green-300 text-green-800",
     "not-preferred": "bg-amber-100 border-amber-300 text-amber-800",
     "leave-pending": "bg-purple-100 border-purple-300 text-purple-800",
-    "leave-approved": "bg-green-100 border-green-300 text-green-800",
+    "leave-approved": "bg-purple-200 border-purple-400 text-purple-900",
   };
 
   const statusLabels: Record<AvailabilityStatus, string> = {
-    available: "Dostępny",
-    unavailable: "Niedostępny",
-    preferred: "Preferowany",
-    "not-preferred": "Niepreferowany",
-    "leave-pending": "Urlop w trakcie akceptacji",
-    "leave-approved": "Urlop zatwierdzony",
+    available: "Dostępny (domyślnie)",
+    unavailable: "Nie mogę",
+    preferred: "Chętnie",
+    "not-preferred": "Niechętnie",
+    "leave-pending": "Urlop (oczekuje)",
+    "leave-approved": "Urlop (zatwierdzony)",
   };
 
   const generateCalendarDays = () => {
@@ -88,7 +88,7 @@ export function MyAvailability() {
     if (!availability[dateStr] && !pendingChanges[dateStr]) {
       setPendingChanges({
         ...pendingChanges,
-        [dateStr]: { date: dateStr, status: "available", category: null, comment: "" },
+        [dateStr]: { date: dateStr, status: "preferred", category: null, comment: "" },
       });
     }
   };
@@ -220,11 +220,19 @@ export function MyAvailability() {
           <div className="space-y-4">
             <section className="rounded-xl border border-gray-200 bg-white p-4">
               <h3 className="mb-3 font-semibold text-gray-900">Legenda</h3>
-              <div className="grid grid-cols-1 gap-2 text-xs sm:grid-cols-2">
-                {Object.entries(statusLabels).map(([status, label]) => (
+              <div className="space-y-2 text-xs">
+                <p className="text-[10px] font-medium uppercase tracking-wide text-gray-500">Twój wybór</p>
+                {(["preferred", "not-preferred", "unavailable", "available"] as const).map((status) => (
                   <div key={status} className="flex items-center gap-2">
-                    <div className={`h-4 w-4 rounded border-2 ${statusColors[status as AvailabilityStatus]}`} />
-                    <span className="text-gray-700">{label}</span>
+                    <div className={`h-4 w-4 rounded border-2 ${statusColors[status]}`} />
+                    <span className="text-gray-700">{statusLabels[status]}</span>
+                  </div>
+                ))}
+                <p className="mt-2 text-[10px] font-medium uppercase tracking-wide text-gray-500">Systemowe</p>
+                {(["leave-pending", "leave-approved"] as const).map((status) => (
+                  <div key={status} className="flex items-center gap-2">
+                    <div className={`h-4 w-4 rounded border-2 ${statusColors[status]}`} />
+                    <span className="text-gray-700">{statusLabels[status]}</span>
                   </div>
                 ))}
               </div>
@@ -262,22 +270,22 @@ export function MyAvailability() {
                   <div className="space-y-4">
                     <div>
                       <label htmlFor="availability-status" className="mb-2 block text-sm font-medium text-gray-700">
-                        Status dostępności
+                        Moja dyspozycyjność
                       </label>
                       <select
                         id="availability-status"
                         value={selectedDay.status}
-                        onChange={(event) => updateSelectedDay({ status: event.target.value as AvailabilityStatus })}
+                        onChange={(event) => updateSelectedDay({ status: event.target.value as AvailabilityStatus, ...(event.target.value === "available" ? { category: null } : {}) })}
                         className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
                       >
-                        <option value="available">Dostępny</option>
-                        <option value="unavailable">Niedostępny</option>
-                        <option value="preferred">Preferowany</option>
-                        <option value="not-preferred">Niepreferowany</option>
+                        <option value="available">— Wyczyść (dostępny domyślnie)</option>
+                        <option value="preferred">Chętnie</option>
+                        <option value="not-preferred">Niechętnie</option>
+                        <option value="unavailable">Nie mogę</option>
                       </select>
                     </div>
 
-                    {(selectedDay.status === "preferred" || selectedDay.status === "not-preferred") && (
+                    {selectedDay.status === "preferred" && (
                       <div>
                         <label htmlFor="availability-category" className="mb-2 block text-sm font-medium text-gray-700">
                           Kategoria preferencji

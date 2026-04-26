@@ -61,7 +61,7 @@ const scheduleAuditEvents: ScheduleAuditEvent[] = [
     action: "Nadpisał preferencję",
     entity: "Grafik Maj 2026",
     details:
-      "Przypisał Dr Piotr Zieliński do dyżuru 10.05.2026 (Niepreferowany dzień). Uzasadnienie: Brak alternatywnych lekarzy z wymaganymi kwalifikacjami",
+      "Przypisał Dr Piotr Zieliński do dyżuru 10.05.2026 (dzień oznaczony jako 'Niechętnie'). Uzasadnienie: Brak alternatywnych lekarzy z wymaganymi kwalifikacjami",
     type: "Override",
   },
   {
