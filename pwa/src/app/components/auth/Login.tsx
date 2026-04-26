@@ -21,7 +21,7 @@ export function Login() {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl mb-4">
             <Calendar className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">System Dyżurów</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Shifts med</h1>
           <p className="text-gray-600 mt-2">Zarządzanie grafikami lekarzy</p>
         </div>
 
@@ -102,10 +102,28 @@ export function Login() {
               </div>
             </div>
 
-            <div className="mt-4 space-y-2 text-sm text-gray-600">
-              <p>• coordinator@hospital.pl - Widok koordynatora</p>
-              <p>• doctor@hospital.pl - Widok lekarza</p>
-              <p>• admin@hospital.pl - Widok admina</p>
+            <div className="mt-4 grid gap-3 text-sm text-gray-600">
+              <div>
+                <p className="font-medium text-gray-700">Admin</p>
+                <p className="font-mono text-gray-700 break-all">admin@hospital.pl</p>
+                <p>
+                  hasło: <span className="font-mono text-gray-700">password123</span>
+                </p>
+              </div>
+              <div>
+                <p className="font-medium text-gray-700">Koordynator</p>
+                <p className="font-mono text-gray-700 break-all">coordinator@hospital.pl</p>
+                <p>
+                  hasło: <span className="font-mono text-gray-700">password123</span>
+                </p>
+              </div>
+              <div>
+                <p className="font-medium text-gray-700">Lekarz</p>
+                <p className="font-mono text-gray-700 break-all">doctor@hospital.pl</p>
+                <p>
+                  hasło: <span className="font-mono text-gray-700">password123</span>
+                </p>
+              </div>
             </div>
           </div>
         </div>
