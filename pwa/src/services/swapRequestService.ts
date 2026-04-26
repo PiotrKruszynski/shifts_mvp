@@ -1,3 +1,5 @@
+import { apiRequest } from "../api/client";
+import { shouldUseMockApi } from "../api/config";
 import type { SwapRequest } from "../domain/types";
 import type { SwapDoctorOptionFixture, SwapShiftOptionFixture } from "../fixtures/swaps.fixture";
 import { mockSeed } from "../mocks/seed";
@@ -101,10 +103,22 @@ const doctorSwapApprovalData: DoctorSwapApprovalData = {
 
 export const swapRequestService = {
   listSwapRequests(): Promise<SwapRequest[]> {
+    if (!shouldUseMockApi()) {
+      return apiRequest<{ id: string }>("/schedules/current").then((schedule) =>
+        apiRequest<{ data: SwapRequest[] }>(`/schedules/${schedule.id}/swap-requests`).then((response) => response.data),
+      );
+    }
+
     return mockResolve([mockSeed.pendingSwap]);
   },
 
   getDoctorSwapFormData(): Promise<DoctorSwapFormData> {
+    if (!shouldUseMockApi()) {
+      return apiRequest<{ id: string }>("/schedules/current").then((schedule) =>
+        apiRequest<DoctorSwapFormData>(`/schedules/${schedule.id}/swap-options`),
+      );
+    }
+
     return mockResolve({
       enabled: mockSeed.doctorCurrentSchedule.status === "PUBLISHED",
       scheduleStatus: "PUBLISHED",
@@ -113,19 +127,57 @@ export const swapRequestService = {
     });
   },
 
-  createSwapRequest(): Promise<SwapRequest> {
+  async createSwapRequest(sourceAssignmentId?: string, targetDoctorId?: string, targetAssignmentId?: string): Promise<SwapRequest> {
+    if (!shouldUseMockApi()) {
+      const schedule = await apiRequest<{ id: string }>("/schedules/current");
+      const options = await apiRequest<DoctorSwapFormData>(`/schedules/${schedule.id}/swap-options`);
+      const source = sourceAssignmentId ?? options.myShifts[0]?.assignment.id;
+      const targetDoctor = targetDoctorId ?? options.doctors[0]?.id;
+      const targetAssignment = targetAssignmentId ?? options.doctors[0]?.shifts[0]?.assignment.id;
+      return apiRequest(`/schedules/${schedule.id}/swap-requests`, {
+        method: "POST",
+        body: {
+          sourceAssignmentId: source,
+          targetAssignmentId: targetAssignment,
+          candidates: [{ doctorProfileId: targetDoctor, assignmentId: targetAssignment }],
+        },
+      });
+    }
+
     return mockMutate(() => mockSeed.pendingSwap);
   },
 
   getDoctorSwapApproval(swapRequestId?: string): Promise<DoctorSwapApprovalData | null> {
+    if (!shouldUseMockApi()) {
+      if (!swapRequestId) {
+        return Promise.resolve(null);
+      }
+      return apiRequest<DoctorSwapApprovalData>(`/swap-requests/${swapRequestId}/doctor-approval-view`).catch(() => null);
+    }
+
     return mockResolve(swapRequestId === mockSeed.pendingSwap.id ? doctorSwapApprovalData : null);
   },
 
-  answerDoctorSwapRequest(_swapRequestId: string, _decision: SwapDecision): Promise<SwapRequest> {
+  answerDoctorSwapRequest(swapRequestId: string, decision: SwapDecision): Promise<SwapRequest> {
+    if (!shouldUseMockApi()) {
+      return apiRequest(`/swap-requests/${swapRequestId}/respond`, {
+        method: "POST",
+        body: { decision: decision === "approve" ? "ACCEPT" : "REJECT" },
+      });
+    }
+
     return mockMutate(() => mockSeed.pendingSwap);
   },
 
   listCoordinatorSwapApprovals(): Promise<CoordinatorSwapApprovalItem[]> {
+    if (!shouldUseMockApi()) {
+      return apiRequest<{ id: string }>("/schedules/current").then((schedule) =>
+        apiRequest<{ data: CoordinatorSwapApprovalItem[] }>(`/schedules/${schedule.id}/swap-approval-view`).then(
+          (response) => response.data,
+        ),
+      );
+    }
+
     return mockResolve(coordinatorSwapApprovals);
   },
 
@@ -134,6 +186,20 @@ export const swapRequestService = {
     requestId: string,
     decision: SwapDecision,
   ): Promise<CoordinatorSwapApprovalItem[]> {
+    if (!shouldUseMockApi()) {
+      const path = decision === "approve" ? "approve" : "reject";
+      return apiRequest<SwapRequest>(`/swap-requests/${requestId}/${path}`, {
+        method: "POST",
+        body: {},
+      }).then(() =>
+        requests.map((request) =>
+          request.id === requestId
+            ? { ...request, status: decision === "approve" ? "Approved" : "Rejected" }
+            : request,
+        ),
+      );
+    }
+
     return mockMutate(() =>
       requests.map((request) =>
         request.id === requestId

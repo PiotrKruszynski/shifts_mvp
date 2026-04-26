@@ -22,6 +22,7 @@ export function SwapApprovals() {
   const [selectedRequest, setSelectedRequest] = useState<CoordinatorSwapApprovalItem | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [modalAction, setModalAction] = useState<"approve" | "reject">("approve");
+  const [actionError, setActionError] = useState<string | null>(null);
 
   useEffect(() => {
     if (requestsState.status === "success" && requests === null) {
@@ -37,12 +38,17 @@ export function SwapApprovals() {
 
   const confirmAction = async () => {
     if (selectedRequest && requests) {
-      const updatedRequests = await swapRequestService.decideCoordinatorSwap(
-        requests,
-        selectedRequest.id,
-        modalAction,
-      );
-      setRequests(updatedRequests);
+      try {
+        setActionError(null);
+        const updatedRequests = await swapRequestService.decideCoordinatorSwap(
+          requests,
+          selectedRequest.id,
+          modalAction,
+        );
+        setRequests(updatedRequests);
+      } catch (error) {
+        setActionError(error instanceof Error ? error.message : "Nie udało się rozpatrzyć zamiany.");
+      }
     }
     setShowModal(false);
     setSelectedRequest(null);
@@ -66,6 +72,8 @@ export function SwapApprovals() {
           Rozpatrz propozycje zamian dyżurów zaakceptowane przez lekarzy
         </p>
       </div>
+
+      {actionError && <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{actionError}</div>}
 
       {pendingRequests.length === 0 ? (
         <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">

@@ -1,3 +1,6 @@
+import { apiRequest } from "../api/client";
+import { shouldUseMockApi } from "../api/config";
+import { doctorService } from "./doctorService";
 import type { LeaveRequestStatus } from "../domain/types";
 import type { LeaveRequestFixture } from "../fixtures/leave-requests.fixture";
 import { mockSeed } from "../mocks/seed";
@@ -5,6 +8,7 @@ import { mockMutate, mockResolve } from "./mockTransport";
 
 export type LeaveRequestListItem = LeaveRequestFixture;
 export type LeaveRequestDecision = "approve" | "reject";
+type ApiLeaveRequest = LeaveRequestListItem["request"] & { submittedAt?: string };
 
 export interface CreateDoctorLeaveRequestInput {
   startDate: string;
@@ -14,15 +18,51 @@ export interface CreateDoctorLeaveRequestInput {
 }
 
 export const leaveRequestService = {
-  listCoordinatorLeaveRequests(): Promise<LeaveRequestListItem[]> {
+  async listCoordinatorLeaveRequests(): Promise<LeaveRequestListItem[]> {
+    if (!shouldUseMockApi()) {
+      const schedule = await apiRequest<{ id: string }>("/schedules/current");
+      return apiRequest<{ data: LeaveRequestListItem[] }>(`/schedules/${schedule.id}/leave-requests`).then(
+        (response) => response.data,
+      );
+    }
+
     return mockResolve(mockSeed.leaveRequests);
   },
 
-  listDoctorLeaveRequests(): Promise<LeaveRequestListItem[]> {
+  async listDoctorLeaveRequests(): Promise<LeaveRequestListItem[]> {
+    if (!shouldUseMockApi()) {
+      const [schedule, doctor] = await Promise.all([
+        apiRequest<{ id: string }>("/schedules/current"),
+        doctorService.getCurrentDoctorContext(),
+      ]);
+      return apiRequest<{ data: LeaveRequestListItem[] }>(
+        `/schedules/${schedule.id}/leave-requests?doctorProfileId=${doctor.doctorProfileId}`,
+      ).then((response) => response.data);
+    }
+
     return mockResolve(mockSeed.myLeaveRequests);
   },
 
-  createDoctorLeaveRequest(input: CreateDoctorLeaveRequestInput): Promise<LeaveRequestListItem> {
+  async createDoctorLeaveRequest(input: CreateDoctorLeaveRequestInput): Promise<LeaveRequestListItem> {
+    if (!shouldUseMockApi()) {
+      const schedule = await apiRequest<{ id: string }>("/schedules/current");
+      const request = await apiRequest<ApiLeaveRequest>(`/schedules/${schedule.id}/leave-requests`, {
+        method: "POST",
+        body: {
+          dateFrom: input.startDate,
+          dateTo: input.endDate,
+          typeLabel: input.typeLabel,
+          reason: input.comment,
+        },
+      });
+      return {
+        request,
+        doctorName: "Ja",
+        typeLabel: input.typeLabel,
+        submittedAt: request.submittedAt ?? new Date().toISOString().slice(0, 10),
+      } as LeaveRequestListItem;
+    }
+
     return mockMutate(() => ({
       request: {
         id: `leave-my-${input.startDate}`,
@@ -45,6 +85,24 @@ export const leaveRequestService = {
     decision: LeaveRequestDecision,
     rejectionReason?: string,
   ): Promise<LeaveRequestListItem[]> {
+    if (!shouldUseMockApi()) {
+      const path = decision === "approve" ? "approve" : "reject";
+      return apiRequest<LeaveRequestListItem["request"]>(`/leave-requests/${requestId}/${path}`, {
+        method: "POST",
+        body: { comment: rejectionReason },
+      }).then((updated) =>
+        requests.map((item) =>
+          item.request.id === requestId
+            ? {
+                ...item,
+                request: updated,
+                rejectionReason: decision === "reject" ? rejectionReason : item.rejectionReason,
+              }
+            : item,
+        ),
+      );
+    }
+
     return mockMutate(() => {
       const nextStatus: LeaveRequestStatus = decision === "approve" ? "APPROVED" : "REJECTED";
 

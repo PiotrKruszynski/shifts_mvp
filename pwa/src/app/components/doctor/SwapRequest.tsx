@@ -42,7 +42,7 @@ export function SwapRequest() {
   }, [formState, locationState, selectedMyShift]);
 
   const handleSubmit = async () => {
-    await swapRequestService.createSwapRequest();
+    await swapRequestService.createSwapRequest(myShift?.assignment.id, doctor?.id, theirShift?.assignment.id);
     navigate("/doctor");
   };
 

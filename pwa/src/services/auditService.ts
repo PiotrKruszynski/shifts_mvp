@@ -1,3 +1,6 @@
+import { toComplianceAuditEvent } from "../api/adapters";
+import { apiRequest, type PageResponse } from "../api/client";
+import { shouldUseMockApi } from "../api/config";
 import type { AuditLogEntry } from "../domain/types";
 import type { ComplianceAuditEventFixture } from "../fixtures/audit.fixture";
 import { mockSeed } from "../mocks/seed";
@@ -16,6 +19,12 @@ export interface ScheduleAuditEvent {
   details: string;
   type: "Create" | "Update" | "Generate" | "Publish" | "Swap" | "Override";
 }
+
+type ApiAuditLogEntry = AuditLogEntry & {
+  actorLabel?: string;
+  actionLabel?: string;
+  resourceLabel?: string;
+};
 
 const scheduleAuditEvents: ScheduleAuditEvent[] = [
   {
@@ -86,14 +95,46 @@ const scheduleAuditEvents: ScheduleAuditEvent[] = [
 
 export const auditService = {
   listAuditLogEntries(): Promise<AuditLogEntry[]> {
+    if (!shouldUseMockApi()) {
+      return apiRequest<PageResponse<AuditLogEntry>>("/audit-log").then((response) => response.data);
+    }
+
     return mockResolve(mockSeed.complianceAuditEvents.map((event) => event.entry));
   },
 
   listComplianceAuditEvents(): Promise<ComplianceAuditEvent[]> {
+    if (!shouldUseMockApi()) {
+      return apiRequest<PageResponse<AuditLogEntry>>("/audit-log").then((response) =>
+        response.data.map(toComplianceAuditEvent),
+      );
+    }
+
     return mockResolve(mockSeed.complianceAuditEvents);
   },
 
   listScheduleAuditEvents(): Promise<ScheduleAuditEvent[]> {
+    if (!shouldUseMockApi()) {
+      return apiRequest<PageResponse<ApiAuditLogEntry>>("/audit-log?entityType=Schedule").then((response) =>
+        response.data.map((entry) => ({
+          id: entry.id,
+          timestamp: entry.timestamp,
+          user: entry.actorLabel ?? entry.actorUserId,
+          action: entry.actionLabel ?? entry.actionType,
+          entity: entry.resourceLabel ?? entry.entityType,
+          details: entry.reason ?? `${entry.actionType} ${entry.entityType}`,
+          type: entry.actionType.includes("PUBLISH")
+            ? "Publish"
+            : entry.actionType.includes("GENERAT")
+              ? "Generate"
+              : entry.actionType.includes("SWAP")
+                ? "Swap"
+                : entry.actionType.includes("CREAT")
+                  ? "Create"
+                  : "Update",
+        })),
+      );
+    }
+
     return mockResolve(scheduleAuditEvents);
   },
 };

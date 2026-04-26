@@ -1,6 +1,9 @@
+import { apiRequest, type PageResponse } from "../api/client";
+import { toAdminUser, toAvailableCoordinator } from "../api/adapters";
+import { shouldUseMockApi } from "../api/config";
 import { mockSeed } from "../mocks/seed";
 import type { AdminUserFixture } from "../fixtures/users.fixture";
-import type { User } from "../domain/types";
+import type { Department, User } from "../domain/types";
 import { mockMutate, mockResolve } from "./mockTransport";
 
 export type AdminUserListItem = AdminUserFixture;
@@ -24,18 +27,47 @@ const availableCoordinators: AvailableCoordinator[] = [
 
 export const userService = {
   listUsers(): Promise<User[]> {
+    if (!shouldUseMockApi()) {
+      return apiRequest<PageResponse<User>>("/users").then((response) => response.data);
+    }
+
     return mockResolve(mockSeed.users);
   },
 
-  listAdminUsers(): Promise<AdminUserListItem[]> {
+  async listAdminUsers(): Promise<AdminUserListItem[]> {
+    if (!shouldUseMockApi()) {
+      const [users, departments] = await Promise.all([
+        apiRequest<PageResponse<User>>("/users").then((response) => response.data),
+        apiRequest<PageResponse<Department>>("/departments").then((response) => response.data),
+      ]);
+      return users.map((user) => toAdminUser(user, departments));
+    }
+
     return mockResolve(mockSeed.adminUsers);
   },
 
-  listAvailableCoordinators(): Promise<AvailableCoordinator[]> {
+  async listAvailableCoordinators(): Promise<AvailableCoordinator[]> {
+    if (!shouldUseMockApi()) {
+      const users = await apiRequest<PageResponse<User>>("/users?role=COORDINATOR").then((response) => response.data);
+      return users.map(toAvailableCoordinator);
+    }
+
     return mockResolve(availableCoordinators);
   },
 
   inviteUser(input: InviteUserInput): Promise<User> {
+    if (!shouldUseMockApi()) {
+      return apiRequest("/users", {
+        method: "POST",
+        body: {
+          email: input.email,
+          firstName: input.firstName,
+          lastName: input.lastName,
+          roles: [{ role: "DOCTOR", scope: "DEPARTMENT" }],
+        },
+      });
+    }
+
     return mockMutate(() => ({
       id: `user-invited-${input.email}`,
       email: input.email,

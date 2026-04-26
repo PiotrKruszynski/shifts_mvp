@@ -1,3 +1,6 @@
+import { toDoctorMetric } from "../api/adapters";
+import { apiRequest } from "../api/client";
+import { shouldUseMockApi } from "../api/config";
 import { mockResolve } from "./mockTransport";
 
 export interface DoctorMetric {
@@ -22,7 +25,25 @@ const doctorMetrics: DoctorMetric[] = [
 ];
 
 export const metricsService = {
-  getDoctorMetrics(): Promise<MetricsData> {
+  async getDoctorMetrics(): Promise<MetricsData> {
+    if (!shouldUseMockApi()) {
+      const schedule = await apiRequest<{ id: string }>("/schedules/current");
+      const metrics = await apiRequest<{
+        periodLabel: string;
+        doctorMetrics: {
+          doctorName: string;
+          weekdayShiftCount: number;
+          weekendShiftCount: number;
+          holidayShiftCount: number;
+          totalHours: number;
+        }[];
+      }>(`/schedules/${schedule.id}/metrics`);
+      return {
+        periodLabel: metrics.periodLabel,
+        doctorMetrics: metrics.doctorMetrics.map(toDoctorMetric),
+      };
+    }
+
     return mockResolve({
       periodLabel: "Maj 2026",
       doctorMetrics,

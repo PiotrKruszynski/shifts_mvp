@@ -1,3 +1,5 @@
+import { apiRequest, type PageResponse } from "../api/client";
+import { shouldUseMockApi } from "../api/config";
 import type { Department } from "../domain/types";
 import { mockSeed } from "../mocks/seed";
 import { mockMutate, mockResolve } from "./mockTransport";
@@ -50,10 +52,20 @@ const departmentSummaries: DepartmentCoordinatorSummary[] = [
 
 export const departmentService = {
   listDepartments(): Promise<Department[]> {
+    if (!shouldUseMockApi()) {
+      return apiRequest<PageResponse<Department>>("/departments").then((response) => response.data);
+    }
+
     return mockResolve(mockSeed.departments);
   },
 
   listDepartmentCoordinatorSummaries(): Promise<DepartmentCoordinatorSummary[]> {
+    if (!shouldUseMockApi()) {
+      return apiRequest<{ data: DepartmentCoordinatorSummary[] }>("/departments/coordinator-summaries").then(
+        (response) => response.data,
+      );
+    }
+
     return mockResolve(departmentSummaries);
   },
 
@@ -62,6 +74,24 @@ export const departmentService = {
   },
 
   createDepartment(input: CreateDepartmentInput): Promise<DepartmentCoordinatorSummary> {
+    if (!shouldUseMockApi()) {
+      return apiRequest<Department>("/departments", {
+        method: "POST",
+        body: {
+          name: input.name,
+          hospitalName: input.hospitalName || "Szpital Wojewodzki",
+          timezone: "Europe/Warsaw",
+        },
+      }).then((department) => ({
+        id: department.id,
+        name: department.name,
+        coordinator: null,
+        coordinatorEmail: null,
+        doctorsCount: 0,
+        activeSchedules: 0,
+      }));
+    }
+
     return mockMutate(() => ({
       id: `dep-${input.name.toLowerCase().replace(/\s+/g, "-")}`,
       name: input.name,

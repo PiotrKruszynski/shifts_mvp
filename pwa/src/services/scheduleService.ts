@@ -1,3 +1,6 @@
+import { formatPeriod, scheduleStatusLabels as apiScheduleStatusLabels, toScheduleListItem } from "../api/adapters";
+import { apiRequest, type PageResponse } from "../api/client";
+import { shouldUseMockApi } from "../api/config";
 import type { ConflictItem, Schedule, ScheduleStatus } from "../domain/types";
 import type {
   DoctorScheduleShiftFixture,
@@ -15,10 +18,7 @@ export type ScheduleEditorShift = ScheduleEditorShiftFixture;
 export type DoctorScheduleShift = DoctorScheduleShiftFixture;
 
 export const scheduleStatusLabels: Record<ScheduleStatus, ScheduleStatusLabel> = {
-  DRAFT: "Szkic",
-  GENERATED: "Wygenerowany",
-  PUBLISHED: "Opublikowany",
-  ARCHIVED: "Zarchiwizowany",
+  ...apiScheduleStatusLabels,
 };
 
 export interface ScheduleListItem {
@@ -162,18 +162,48 @@ const doctorDashboardData: DoctorDashboardData = {
 
 export const scheduleService = {
   listSchedules(): Promise<Schedule[]> {
+    if (!shouldUseMockApi()) {
+      return apiRequest<PageResponse<Schedule>>("/schedules").then((response) => response.data);
+    }
+
     return mockResolve(mockSeed.schedules);
   },
 
-  listCoordinatorSchedules(): Promise<ScheduleListItem[]> {
+  async listCoordinatorSchedules(): Promise<ScheduleListItem[]> {
+    if (!shouldUseMockApi()) {
+      const schedules = await apiRequest<PageResponse<Schedule>>("/schedules").then((response) => response.data);
+      return Promise.all(
+        schedules.map(async (schedule) => {
+          const [participants, shifts] = await Promise.all([
+            apiRequest<{ data: unknown[] }>(`/schedules/${schedule.id}/participants`).then((response) => response.data),
+            apiRequest<{ data: unknown[] }>(`/schedules/${schedule.id}/shifts`).then((response) => response.data),
+          ]);
+          return toScheduleListItem(schedule, participants.length, shifts.length);
+        }),
+      );
+    }
+
     return mockResolve(coordinatorSchedules);
   },
 
   getCoordinatorDashboardSchedule(): Promise<CoordinatorDashboardSchedule> {
+    if (!shouldUseMockApi()) {
+      return apiRequest<Schedule>("/schedules/current").then((schedule) =>
+        apiRequest<CoordinatorDashboardSchedule>(`/schedules/${schedule.id}/coordinator-dashboard`).then((dashboard) => ({
+          ...dashboard,
+          period: formatPeriod(schedule),
+        })),
+      );
+    }
+
     return mockResolve(coordinatorDashboardSchedule);
   },
 
   getScheduleEditorData(_scheduleId?: string): Promise<ScheduleEditorData> {
+    if (!shouldUseMockApi()) {
+      return apiRequest(`/schedules/${_scheduleId}/editor-view`);
+    }
+
     return mockResolve({
       schedule: mockSeed.currentSchedule,
       periodLabel: "Maj 2026",
@@ -184,21 +214,56 @@ export const scheduleService = {
   },
 
   getDoctorDashboardData(): Promise<DoctorDashboardData> {
+    if (!shouldUseMockApi()) {
+      return apiRequest<Schedule>("/schedules/current").then((schedule) =>
+        apiRequest<DoctorDashboardData>(`/schedules/${schedule.id}/doctor-dashboard`).then((dashboard) => ({
+          ...dashboard,
+          periodLabel: formatPeriod(schedule),
+        })),
+      );
+    }
+
     return mockResolve(doctorDashboardData);
   },
 
   getDoctorSchedule(): Promise<DoctorScheduleData> {
+    if (!shouldUseMockApi()) {
+      return apiRequest<Schedule>("/schedules/current").then((schedule) =>
+        apiRequest<DoctorScheduleData>(`/schedules/${schedule.id}/doctor-schedule`).then((doctorSchedule) => ({
+          ...doctorSchedule,
+          periodLabel: formatPeriod(schedule),
+        })),
+      );
+    }
+
     return mockResolve({
       periodLabel: "Maj 2026",
       shifts: mockSeed.doctorScheduleShifts,
     });
   },
 
-  createMonthlySchedule(input: CreateMonthlyScheduleInput): Promise<Schedule> {
+  async createMonthlySchedule(input: CreateMonthlyScheduleInput): Promise<Schedule> {
     const [year, month] = input.month.split("-");
     const periodStart = `${input.month}-01`;
     const lastDay = new Date(Number(year), Number(month), 0).getDate().toString().padStart(2, "0");
     const periodEnd = `${input.month}-${lastDay}`;
+
+    if (!shouldUseMockApi()) {
+      const [department, doctors] = await Promise.all([
+        apiRequest<PageResponse<{ id: string }>>("/departments").then((response) => response.data[0]),
+        apiRequest<PageResponse<{ id: string }>>("/doctor-profiles?active=true").then((response) => response.data),
+      ]);
+      return apiRequest("/schedules", {
+        method: "POST",
+        body: {
+          departmentId: department.id,
+          periodStart,
+          periodEnd,
+          availabilityDeadline: `${input.availabilityDeadline}T20:00:00Z`,
+          participantDoctorProfileIds: doctors.map((doctor) => doctor.id),
+        },
+      });
+    }
 
     return mockResolve({
       id: "1",
@@ -213,6 +278,18 @@ export const scheduleService = {
   },
 
   isDoctorSwapFlowEnabled(): Promise<boolean> {
+    if (!shouldUseMockApi()) {
+      return this.getDoctorDashboardData().then((dashboard) => dashboard.canRequestSwap);
+    }
+
     return mockResolve(doctorDashboardData.canRequestSwap);
+  },
+
+  publishSchedule(scheduleId: string): Promise<Schedule> {
+    if (shouldUseMockApi()) {
+      return mockResolve({ ...mockSeed.currentSchedule, id: scheduleId, status: "PUBLISHED" });
+    }
+
+    return apiRequest(`/schedules/${scheduleId}/publish`, { method: "POST", body: {} });
   },
 };

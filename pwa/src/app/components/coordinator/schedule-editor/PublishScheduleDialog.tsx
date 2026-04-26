@@ -10,9 +10,10 @@ import {
 
 interface PublishScheduleDialogProps {
   onClose: () => void;
+  onConfirm: () => Promise<void>;
 }
 
-export function PublishScheduleDialog({ onClose }: PublishScheduleDialogProps) {
+export function PublishScheduleDialog({ onClose, onConfirm }: PublishScheduleDialogProps) {
   return (
     <Dialog defaultOpen onOpenChange={(open) => (!open ? onClose() : undefined)}>
       <DialogContent aria-describedby="publish-schedule-description" className="sm:max-w-md">
@@ -55,7 +56,7 @@ export function PublishScheduleDialog({ onClose }: PublishScheduleDialogProps) {
           </button>
           <button
             type="button"
-            onClick={onClose}
+            onClick={onConfirm}
             className="rounded-lg bg-green-600 px-4 py-2 font-medium text-white transition-colors hover:bg-green-700"
           >
             Publikuj

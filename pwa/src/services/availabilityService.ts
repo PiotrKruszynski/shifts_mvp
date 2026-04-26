@@ -1,3 +1,7 @@
+import { formatPeriod } from "../api/adapters";
+import { apiRequest, type PageResponse } from "../api/client";
+import { shouldUseMockApi } from "../api/config";
+import type { AvailabilityDeclaration, PreferenceCategory, Schedule } from "../domain/types";
 import { mockSeed } from "../mocks/seed";
 import { mockMutate, mockResolve } from "./mockTransport";
 
@@ -54,8 +58,44 @@ const myAvailabilityDays: Record<string, DayAvailability> = {
   "2026-05-15": { date: "2026-05-15", status: "leave-approved", category: null, comment: "" },
 };
 
+const toAvailabilityStatus = (value: string): AvailabilityStatus => {
+  if (value === "UNAVAILABLE") return "unavailable";
+  if (value === "PREFERRED") return "preferred";
+  if (value === "NOT_PREFERRED") return "not-preferred";
+  return "available";
+};
+
+const toBackendAvailabilityType = (value: AvailabilityStatus) => {
+  if (value === "unavailable") return "UNAVAILABLE";
+  if (value === "preferred") return "PREFERRED";
+  if (value === "not-preferred") return "NOT_PREFERRED";
+  return "AVAILABLE";
+};
+
+const toDayMap = (declaration: AvailabilityDeclaration, categories: PreferenceCategory[]) =>
+  Object.fromEntries(
+    declaration.days.map((day) => [
+      day.date,
+      {
+        date: day.date,
+        status: toAvailabilityStatus(day.availabilityType),
+        category: categories.find((category) => category.id === day.preferenceCategoryId)?.code ?? null,
+        comment: day.comment ?? "",
+      } satisfies DayAvailability,
+    ]),
+  );
+
+const getDraftSchedule = async () => {
+  const draft = await apiRequest<PageResponse<Schedule>>("/schedules?status=DRAFT").then((response) => response.data[0]);
+  return draft ?? apiRequest<Schedule>("/schedules/current");
+};
+
 export const availabilityService = {
   getAvailabilityCollection(scheduleId = "1"): Promise<AvailabilityCollectionData> {
+    if (!shouldUseMockApi()) {
+      return apiRequest(`/schedules/${scheduleId}/availability-collection-view`);
+    }
+
     return mockResolve({
       scheduleId,
       periodLabel: "Maj 2026",
@@ -66,7 +106,21 @@ export const availabilityService = {
     });
   },
 
-  getMyAvailability(): Promise<MyAvailabilityData> {
+  async getMyAvailability(): Promise<MyAvailabilityData> {
+    if (!shouldUseMockApi()) {
+      const [schedule, categories] = await Promise.all([
+        getDraftSchedule(),
+        apiRequest<{ data: PreferenceCategory[] }>("/preference-categories").then((response) => response.data),
+      ]);
+      const declaration = await apiRequest<AvailabilityDeclaration>(`/schedules/${schedule.id}/availability/me`);
+      return {
+        scheduleId: schedule.id,
+        periodLabel: formatPeriod(schedule),
+        deadlineDate: schedule.availabilityDeadline.slice(0, 10),
+        days: toDayMap(declaration, categories),
+      };
+    }
+
     return mockResolve({
       scheduleId: mockSeed.doctorCurrentSchedule.id,
       periodLabel: "Maj 2026",
@@ -75,7 +129,28 @@ export const availabilityService = {
     });
   },
 
-  saveMyAvailability(days: Record<string, DayAvailability>): Promise<Record<string, DayAvailability>> {
+  async saveMyAvailability(days: Record<string, DayAvailability>): Promise<Record<string, DayAvailability>> {
+    if (!shouldUseMockApi()) {
+      const [schedule, categories] = await Promise.all([
+        getDraftSchedule(),
+        apiRequest<{ data: PreferenceCategory[] }>("/preference-categories").then((response) => response.data),
+      ]);
+      const declaration = await apiRequest<AvailabilityDeclaration>(`/schedules/${schedule.id}/availability/me`, {
+        method: "PUT",
+        body: {
+          days: Object.values(days)
+            .filter((day) => !day.status.startsWith("leave-"))
+            .map((day) => ({
+              date: day.date,
+              availabilityType: toBackendAvailabilityType(day.status),
+              preferenceCategoryId: categories.find((category) => category.code === day.category)?.id,
+              comment: day.comment || undefined,
+            })),
+        },
+      });
+      return toDayMap(declaration, categories);
+    }
+
     return mockMutate(() => days);
   },
 };
