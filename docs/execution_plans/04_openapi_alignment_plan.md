@@ -1,13 +1,13 @@
 # 04 — OpenAPI Alignment Plan
 
-Status: Living Draft
+Status: Complete - ready for acceptance
 Owner: Backend Developer Agent
 Reviewers: Frontend Developer Agent, Planning & Orchestration Agent
 Worktree branch: `agent/backend/04-openapi-alignment`
 Recommended worktree: `../worktrees/shifts-04-openapi-alignment`
 Depends on: `03_mock_api_plan.md`
 Next: `05_backend_implementation_plan.md`
-Last updated: YYYY-MM-DD HH:MMZ
+Last updated: 2026-04-26 12:09Z
 
 ## Objective
 
@@ -98,36 +98,36 @@ Confirm that the contract supports these areas:
 
 ### A. Preflight
 
-- [ ] (YYYY-MM-DD HH:MMZ) Confirm branch/worktree: `agent/backend/04-openapi-alignment`.
-- [ ] (YYYY-MM-DD HH:MMZ) Read phase 03 handoff and mock API report.
-- [ ] (YYYY-MM-DD HH:MMZ) Parse current `docs/architecture/openapi.yaml` and list all paths, schemas and operation IDs.
-- [ ] (YYYY-MM-DD HH:MMZ) Identify frontend service functions that have no matching endpoint.
-- [ ] (YYYY-MM-DD HH:MMZ) Identify endpoints that are not required by MVP flows.
+- [x] (2026-04-26 12:09Z) Confirm branch/worktree: `agent/backend/04-openapi-alignment`.
+- [x] (2026-04-26 12:09Z) Read phase 03 handoff and mock API report.
+- [x] (2026-04-26 12:09Z) Parse current `docs/architecture/openapi.yaml` and list all paths, schemas and operation IDs.
+- [x] (2026-04-26 12:09Z) Identify frontend service functions that have no matching endpoint.
+- [x] (2026-04-26 12:09Z) Identify endpoints that are not required by MVP flows.
 
 ### B. Domain and flow alignment
 
-- [ ] (YYYY-MM-DD HH:MMZ) Verify role codes match the product documents.
-- [ ] (YYYY-MM-DD HH:MMZ) Verify schedule state transitions match `docs/architecture/domain_model.md` and `docs/architecture/user_flow.mmd`.
-- [ ] (YYYY-MM-DD HH:MMZ) Verify published schedules are immutable except through swaps.
-- [ ] (YYYY-MM-DD HH:MMZ) Verify hard-rule validation responses cannot be represented as accepted violations.
-- [ ] (YYYY-MM-DD HH:MMZ) Verify audit log schemas support append-only generation, publication and swap events.
+- [x] (2026-04-26 12:09Z) Verify role codes match the product documents.
+- [x] (2026-04-26 12:09Z) Verify schedule state transitions match `docs/architecture/domain_model.md` and `docs/architecture/user_flow.mmd`.
+- [x] (2026-04-26 12:09Z) Verify published schedules are immutable except through swaps.
+- [x] (2026-04-26 12:09Z) Verify hard-rule validation responses cannot be represented as accepted violations.
+- [x] (2026-04-26 12:09Z) Verify audit log schemas support append-only generation, publication and swap events.
 
 ### C. Contract updates
 
-- [ ] (YYYY-MM-DD HH:MMZ) Add missing MVP endpoints required by frontend services.
-- [ ] (YYYY-MM-DD HH:MMZ) Remove or mark non-MVP operations only if they create implementation ambiguity.
-- [ ] (YYYY-MM-DD HH:MMZ) Ensure request/response schemas are explicit and typed.
-- [ ] (YYYY-MM-DD HH:MMZ) Ensure list endpoints have pagination or a documented MVP simplification.
-- [ ] (YYYY-MM-DD HH:MMZ) Ensure action endpoints are clear for generation, publication, archive and swap approval.
-- [ ] (YYYY-MM-DD HH:MMZ) Ensure validation error payloads include reason codes and context.
-- [ ] (YYYY-MM-DD HH:MMZ) Ensure auth/authorization expectations are documented without overbuilding production auth.
+- [x] (2026-04-26 12:09Z) Add missing MVP endpoints required by frontend services.
+- [x] (2026-04-26 12:09Z) Remove or mark non-MVP operations only if they create implementation ambiguity.
+- [x] (2026-04-26 12:09Z) Ensure request/response schemas are explicit and typed.
+- [x] (2026-04-26 12:09Z) Ensure list endpoints have pagination or a documented MVP simplification.
+- [x] (2026-04-26 12:09Z) Ensure action endpoints are clear for generation, publication, archive and swap approval.
+- [x] (2026-04-26 12:09Z) Ensure validation error payloads include reason codes and context.
+- [x] (2026-04-26 12:09Z) Ensure auth/authorization expectations are documented without overbuilding production auth.
 
 ### D. Frontend service mapping
 
-- [ ] (YYYY-MM-DD HH:MMZ) Create a service-to-operation mapping in `docs/reports/openapi_alignment_report.md`.
-- [ ] (YYYY-MM-DD HH:MMZ) Identify service functions that should be renamed before phase 06.
-- [ ] (YYYY-MM-DD HH:MMZ) Identify endpoints that require backend seed data to support QA flows.
-- [ ] (YYYY-MM-DD HH:MMZ) Record unresolved differences in `docs/open_questions.md`.
+- [x] (2026-04-26 12:09Z) Create a service-to-operation mapping in `docs/reports/openapi_alignment_report.md`.
+- [x] (2026-04-26 12:09Z) Identify service functions that should be renamed before phase 06.
+- [x] (2026-04-26 12:09Z) Identify endpoints that require backend seed data to support QA flows.
+- [x] (2026-04-26 12:09Z) Record unresolved differences in `docs/open_questions.md`.
 
 ## Validation commands
 
@@ -182,16 +182,22 @@ Do not install new global tools unless the project already uses them; local temp
 
 ## Handoff
 
-- Branch/worktree:
-- Completed:
-- Validation:
-- Known issues:
-- Open questions:
-- Files changed:
-- Recommended next step:
+- Branch/worktree: `agent/backend/04-openapi-alignment` at `/Users/piotr/projects/worktrees/shifts-04-openapi-alignment`.
+- Remote branch: `origin/agent/backend/04-openapi-alignment`.
+- Base branch: `master`.
+- Current HEAD: Phase 04 branch HEAD after this handoff commit.
+- Contains master: yes.
+- Completed: aligned `docs/architecture/openapi.yaml` with Phase 03 service boundary; added MVP read models for current schedule discovery, dashboards, availability collection, schedule editor, leave request list display, swap options and swap approval views; resolved OQ-006; created service-to-operation mapping report.
+- Validation: YAML parse passed; internal `$ref` and operation ID uniqueness check passed; Redocly lint reported warnings only.
+- Known issues: `userService.inviteUser` must pass the selected role before Phase 06 integration so it can call `createUser` without weakening the contract.
+- Open questions: none blocking Phase 05; OQ-006 is resolved.
+- Files changed: `docs/architecture/openapi.yaml`, `docs/reports/openapi_alignment_report.md`, `docs/open_questions.md`, `docs/execution_plans/04_openapi_alignment_plan.md`.
+- Gate decision: ready for Orchestrator/Gatekeeper acceptance.
+- Recommended next step: after acceptance, merge Phase 04 to `master`, then start Phase 05 backend implementation from the accepted contract.
 
 ## Change log
 
 | Timestamp UTC | Agent | Change |
 |---|---|---|
 | YYYY-MM-DD HH:MMZ | Backend Developer Agent | Initial English OpenAPI alignment plan. |
+| 2026-04-26 12:09Z | Backend Developer Agent + Frontend Reviewer | Aligned OpenAPI with Phase 03 service boundary, resolved OQ-006, and recorded service-to-operation mapping. |

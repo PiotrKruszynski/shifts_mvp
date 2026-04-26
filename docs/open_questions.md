@@ -116,13 +116,13 @@ Resolution:
 
 ## OQ-006 - Phase 03 mock service composites vs OpenAPI operation boundaries
 
-Status: Open for Phase 04
+Status: Resolved in Phase 04
 
 Phase 03 introduced frontend-friendly async mock services that preserve Phase 02 UI behavior. Several methods intentionally return composite view models rather than one-to-one OpenAPI payloads.
 
-Needs Phase 04 decision:
+Phase 04 decision:
 
-- whether dashboard, department summary and swap candidate data should be first-class endpoints or assembled by the frontend from existing operations;
-- whether system settings should become a dedicated contract or remain split across configuration resources such as preference categories and constraint rules;
-- whether password reset belongs in the MVP OpenAPI contract, because the mock auth service supports it but the current Auth paths do not;
-- how doctor-contextual leave request creation maps to the schedule-scoped OpenAPI route.
+- department coordinator summaries, current doctor context, current schedule discovery, coordinator/doctor dashboards, schedule editor view, availability collection, leave request list display data, swap candidate data and swap approval views are first-class MVP read models in `docs/architecture/openapi.yaml`;
+- system settings are a dedicated MVP contract at `/system-settings`, while preference categories and constraint rules remain separate configuration resources;
+- password reset belongs in the MVP contract through `requestPasswordReset`;
+- doctor-contextual leave request creation maps to `createLeaveRequest` on `/schedules/{scheduleId}/leave-requests`; the frontend service must resolve the active/current doctor schedule before calling it.

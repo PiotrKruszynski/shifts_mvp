@@ -95,6 +95,31 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
+  /auth/password-reset-requests:
+    post:
+      tags: [Auth]
+      operationId: requestPasswordReset
+      security: []
+      summary: Request a password reset email for an existing account.
+      description: >-
+        MVP endpoint used by the reset-password UI. The response is intentionally
+        non-enumerating so callers cannot infer whether the email exists.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequest'
+      responses:
+        '202':
+          description: Password reset request accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PasswordResetResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
   /users:
     get:
       tags: [Users]
@@ -243,6 +268,25 @@ paths:
               schema:
                 $ref: '#/components/schemas/Department'
 
+  /departments/coordinator-summaries:
+    get:
+      tags: [Departments]
+      operationId: listDepartmentCoordinatorSummaries
+      summary: List department coordinator assignment summaries for Admin overview.
+      description: >-
+        Returns the MVP Admin Departments table read model without requiring
+        the frontend to join departments, users, doctor counts and active schedules.
+      x-roles: [ADMIN]
+      responses:
+        '200':
+          description: Department coordinator summaries.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DepartmentCoordinatorSummaryListResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
   /departments/{departmentId}:
     parameters:
       - $ref: '#/components/parameters/DepartmentId'
@@ -344,6 +388,22 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DoctorProfile'
+
+  /doctor-profiles/me/context:
+    get:
+      tags: [Doctors]
+      operationId: getCurrentDoctorContext
+      summary: Return current doctor's profile context for Doctor views.
+      x-roles: [DOCTOR]
+      responses:
+        '200':
+          description: Current doctor context.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentDoctorContext'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /doctor-profiles/{doctorProfileId}:
     parameters:
@@ -527,6 +587,42 @@ paths:
                     items:
                       $ref: '#/components/schemas/ConstraintRule'
 
+  /system-settings:
+    get:
+      tags: [Configuration]
+      operationId: getSystemSettings
+      summary: Get MVP scheduling and notification settings.
+      x-roles: [ADMIN]
+      responses:
+        '200':
+          description: System settings.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemSettings'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    put:
+      tags: [Configuration]
+      operationId: saveSystemSettings
+      summary: Replace MVP scheduling and notification settings.
+      x-roles: [ADMIN]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SystemSettingsUpdateRequest'
+      responses:
+        '200':
+          description: Updated system settings.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemSettings'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
   /schedules:
     get:
       tags: [Schedules]
@@ -580,6 +676,35 @@ paths:
         '422':
           $ref: '#/components/responses/ValidationError'
 
+  /schedules/current:
+    get:
+      tags: [Schedules]
+      operationId: getCurrentSchedule
+      summary: Return the current schedule for the authenticated user's active flow.
+      description: >-
+        Used by doctor-scoped and coordinator dashboard flows to discover the
+        schedule ID before calling schedule-scoped operations.
+      x-roles: [COORDINATOR, DOCTOR]
+      parameters:
+        - name: roleContext
+          in: query
+          schema:
+            type: string
+            enum: [COORDINATOR, DOCTOR]
+        - name: departmentId
+          in: query
+          schema:
+            $ref: '#/components/schemas/Id'
+      responses:
+        '200':
+          description: Current schedule.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Schedule'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
   /schedules/{scheduleId}:
     parameters:
       - $ref: '#/components/parameters/ScheduleId'
@@ -621,6 +746,99 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+
+  /schedules/{scheduleId}/coordinator-dashboard:
+    parameters:
+      - $ref: '#/components/parameters/ScheduleId'
+    get:
+      tags: [Schedules]
+      operationId: getCoordinatorDashboardSchedule
+      summary: Return coordinator dashboard read model for one schedule.
+      x-roles: [COORDINATOR]
+      responses:
+        '200':
+          description: Coordinator dashboard schedule.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CoordinatorDashboardSchedule'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /schedules/{scheduleId}/doctor-dashboard:
+    parameters:
+      - $ref: '#/components/parameters/ScheduleId'
+    get:
+      tags: [Schedules]
+      operationId: getDoctorDashboardData
+      summary: Return current doctor's dashboard read model for one schedule.
+      x-roles: [DOCTOR]
+      responses:
+        '200':
+          description: Doctor dashboard data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DoctorDashboardData'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /schedules/{scheduleId}/doctor-schedule:
+    parameters:
+      - $ref: '#/components/parameters/ScheduleId'
+    get:
+      tags: [Schedules]
+      operationId: getDoctorSchedule
+      summary: Return current doctor's schedule view for one published schedule.
+      x-roles: [DOCTOR]
+      responses:
+        '200':
+          description: Doctor schedule view.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DoctorScheduleView'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /schedules/{scheduleId}/editor-view:
+    parameters:
+      - $ref: '#/components/parameters/ScheduleId'
+    get:
+      tags: [Schedules]
+      operationId: getScheduleEditorView
+      summary: Return schedule editor read model for Coordinator review.
+      description: >-
+        MVP read model for the generated schedule editor. It combines schedule
+        metadata, display labels, shift assignment rows and current conflicts.
+      x-roles: [COORDINATOR]
+      responses:
+        '200':
+          description: Schedule editor view.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduleEditorView'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /schedules/{scheduleId}/availability-collection-view:
+    parameters:
+      - $ref: '#/components/parameters/ScheduleId'
+    get:
+      tags: [Availability]
+      operationId: getAvailabilityCollection
+      summary: Return coordinator availability collection read model.
+      x-roles: [COORDINATOR]
+      responses:
+        '200':
+          description: Availability collection view.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AvailabilityCollectionView'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /schedules/{scheduleId}/participants:
     parameters:
@@ -1085,7 +1303,7 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: '#/components/schemas/LeaveRequest'
+                      $ref: '#/components/schemas/LeaveRequestListItem'
     post:
       tags: [LeaveRequests]
       operationId: createLeaveRequest
@@ -1220,6 +1438,50 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /schedules/{scheduleId}/swap-options:
+    parameters:
+      - $ref: '#/components/parameters/ScheduleId'
+    get:
+      tags: [Swaps]
+      operationId: getDoctorSwapOptions
+      summary: Return current doctor's eligible swap options for a published schedule.
+      description: >-
+        Supports the Doctor swap request flow by returning the doctor's own
+        swappable assignments and candidate doctor assignments already filtered
+        to the MVP eligibility rules.
+      x-roles: [DOCTOR]
+      responses:
+        '200':
+          description: Swap options for the current doctor.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SwapOptionsResponse'
+        '409':
+          description: Schedule is not published and swaps are unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /schedules/{scheduleId}/swap-approval-view:
+    parameters:
+      - $ref: '#/components/parameters/ScheduleId'
+    get:
+      tags: [Swaps]
+      operationId: listCoordinatorSwapApprovals
+      summary: Return coordinator swap approval read model for a published schedule.
+      x-roles: [COORDINATOR]
+      responses:
+        '200':
+          description: Swap approval items.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CoordinatorSwapApprovalListResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
   /swap-requests/{swapRequestId}:
     parameters:
       - $ref: '#/components/parameters/SwapRequestId'
@@ -1235,6 +1497,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SwapRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /swap-requests/{swapRequestId}/doctor-approval-view:
+    parameters:
+      - $ref: '#/components/parameters/SwapRequestId'
+    get:
+      tags: [Swaps]
+      operationId: getDoctorSwapApproval
+      summary: Return current doctor's swap response read model.
+      x-roles: [DOCTOR]
+      responses:
+        '200':
+          description: Doctor swap approval view.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DoctorSwapApprovalView'
         '404':
           $ref: '#/components/responses/NotFound'
 
@@ -1714,6 +1994,12 @@ components:
     VerificationStatus:
       type: string
       enum: [VALID, EXPIRED, UNKNOWN]
+    AuditCategory:
+      type: string
+      enum: [Access, Change, Security, Compliance]
+    AuditSeverity:
+      type: string
+      enum: [Info, Warning, Critical]
 
     LoginRequest:
       type: object
@@ -1732,6 +2018,23 @@ components:
       properties:
         refreshToken:
           type: string
+    PasswordResetRequest:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+    PasswordResetResponse:
+      type: object
+      required: [email, sent]
+      properties:
+        email:
+          type: string
+          format: email
+        sent:
+          type: boolean
+          const: true
     AuthTokenResponse:
       type: object
       required: [accessToken, refreshToken, expiresIn, user]
@@ -1904,6 +2207,39 @@ components:
             $ref: '#/components/schemas/Department'
         meta:
           $ref: '#/components/schemas/PageMeta'
+    DepartmentCoordinatorSummary:
+      type: object
+      required: [id, name, coordinator, coordinatorEmail, doctorsCount, activeSchedules]
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        name:
+          type: string
+        coordinator:
+          type:
+            - string
+            - 'null'
+        coordinatorEmail:
+          type:
+            - string
+            - 'null'
+          format: email
+        doctorsCount:
+          type: integer
+          minimum: 0
+        activeSchedules:
+          type: integer
+          minimum: 0
+        assignedAt:
+          $ref: '#/components/schemas/Date'
+    DepartmentCoordinatorSummaryListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/DepartmentCoordinatorSummary'
     CoordinatorAssignmentRequest:
       type: object
       required: [coordinatorUserId, validFrom]
@@ -1993,6 +2329,20 @@ components:
             $ref: '#/components/schemas/DoctorProfile'
         meta:
           $ref: '#/components/schemas/PageMeta'
+    CurrentDoctorContext:
+      type: object
+      required: [doctorProfileId, userId, firstName, fullName, departmentName]
+      properties:
+        doctorProfileId:
+          $ref: '#/components/schemas/Id'
+        userId:
+          $ref: '#/components/schemas/Id'
+        firstName:
+          type: string
+        fullName:
+          type: string
+        departmentName:
+          type: string
     Qualification:
       type: object
       required: [id, code, name, active]
@@ -2062,7 +2412,7 @@ components:
           type: string
     AcceptInvitationRequest:
       type: object
-      required: [token, firstName, lastName, password]
+      required: [token, firstName, lastName, email, password]
       properties:
         token:
           type: string
@@ -2070,6 +2420,9 @@ components:
           type: string
         lastName:
           type: string
+        email:
+          type: string
+          format: email
         password:
           type: string
           format: password
@@ -2087,7 +2440,7 @@ components:
 
     PreferenceCategory:
       type: object
-      required: [id, code, name, priority, active]
+      required: [id, code, name, priority, description]
       properties:
         id:
           $ref: '#/components/schemas/Id'
@@ -2149,6 +2502,48 @@ components:
           type: boolean
         description:
           type: string
+
+    SystemSettings:
+      type: object
+      required:
+        - language
+        - timezone
+        - minRestHours
+        - maxWeeklyHours
+        - maxMonthlyHours
+        - enableEmailNotifications
+        - enableSMSNotifications
+        - defaultScheduleStatus
+        - autoArchiveAfterDays
+      properties:
+        language:
+          type: string
+          enum: [pl, en]
+        timezone:
+          type: string
+          examples: [Europe/Warsaw]
+        minRestHours:
+          type: integer
+          minimum: 0
+        maxWeeklyHours:
+          type: integer
+          minimum: 0
+        maxMonthlyHours:
+          type: integer
+          minimum: 0
+        enableEmailNotifications:
+          type: boolean
+        enableSMSNotifications:
+          type: boolean
+        defaultScheduleStatus:
+          type: string
+          enum: [DRAFT, GENERATED]
+        autoArchiveAfterDays:
+          type: integer
+          minimum: 0
+    SystemSettingsUpdateRequest:
+      allOf:
+        - $ref: '#/components/schemas/SystemSettings'
 
     Schedule:
       type: object
@@ -2212,6 +2607,178 @@ components:
             $ref: '#/components/schemas/Schedule'
         meta:
           $ref: '#/components/schemas/PageMeta'
+    ScheduleStatusLabel:
+      type: string
+      enum: [Szkic, Wygenerowany, Opublikowany, Zarchiwizowany]
+    CoordinatorDashboardSchedule:
+      type: object
+      required:
+        - id
+        - period
+        - dateRange
+        - status
+        - deadline
+        - unassignedShifts
+        - conflicts
+        - pendingSwaps
+        - doctors
+        - activeDoctors
+        - invitedDoctors
+        - shifts
+        - availabilitySubmitted
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        period:
+          type: string
+        dateRange:
+          type: string
+        status:
+          $ref: '#/components/schemas/ScheduleStatusLabel'
+        deadline:
+          $ref: '#/components/schemas/Date'
+        unassignedShifts:
+          type: integer
+        conflicts:
+          type: integer
+        pendingSwaps:
+          type: integer
+        doctors:
+          type: integer
+        activeDoctors:
+          type: integer
+        invitedDoctors:
+          type: integer
+        shifts:
+          type: integer
+        availabilitySubmitted:
+          type: integer
+    DoctorDashboardData:
+      type: object
+      required:
+        - doctorFirstName
+        - departmentName
+        - schedule
+        - scheduleStatusLabel
+        - periodLabel
+        - availabilityDeadline
+        - upcomingShift
+        - canRequestSwap
+      properties:
+        doctorFirstName:
+          type: string
+        departmentName:
+          type: string
+        schedule:
+          $ref: '#/components/schemas/Schedule'
+        scheduleStatusLabel:
+          $ref: '#/components/schemas/ScheduleStatusLabel'
+        periodLabel:
+          type: string
+        availabilityDeadline:
+          $ref: '#/components/schemas/Date'
+        upcomingShift:
+          $ref: '#/components/schemas/UpcomingShiftSummary'
+        canRequestSwap:
+          type: boolean
+        pendingSwap:
+          anyOf:
+            - $ref: '#/components/schemas/PendingSwapSummary'
+            - type: 'null'
+    UpcomingShiftSummary:
+      type: object
+      required: [date, day, category, hours]
+      properties:
+        date:
+          $ref: '#/components/schemas/Date'
+        day:
+          type: string
+        category:
+          type: string
+        hours:
+          type: string
+    PendingSwapSummary:
+      type: object
+      required: [status, title, shiftLabel, updatedLabel]
+      properties:
+        status:
+          type: string
+        title:
+          type: string
+        shiftLabel:
+          type: string
+        updatedLabel:
+          type: string
+    DoctorScheduleView:
+      type: object
+      required: [periodLabel, shifts]
+      properties:
+        periodLabel:
+          type: string
+        shifts:
+          type: array
+          items:
+            $ref: '#/components/schemas/DoctorScheduleShift'
+    DoctorScheduleShift:
+      type: object
+      required: [shift, assignment, day, department, category, categoryDay, scheduleStatus, canSwap]
+      properties:
+        shift:
+          $ref: '#/components/schemas/Shift'
+        assignment:
+          $ref: '#/components/schemas/Assignment'
+        day:
+          type: string
+        department:
+          type: string
+        category:
+          type: string
+          enum: [Weekday, Weekend, Holiday]
+        categoryDay:
+          type: string
+        scheduleStatus:
+          $ref: '#/components/schemas/ScheduleStatus'
+        canSwap:
+          type: boolean
+    ScheduleEditorView:
+      type: object
+      required: [schedule, periodLabel, dateRangeLabel, shifts, conflicts]
+      properties:
+        schedule:
+          $ref: '#/components/schemas/Schedule'
+        periodLabel:
+          type: string
+        dateRangeLabel:
+          type: string
+        shifts:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScheduleEditorShift'
+        conflicts:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConflictItem'
+    ScheduleEditorShift:
+      type: object
+      required: [shift, doctorName, category, valid, issues]
+      properties:
+        shift:
+          $ref: '#/components/schemas/Shift'
+        assignment:
+          $ref: '#/components/schemas/Assignment'
+        doctorName:
+          type:
+            - string
+            - 'null'
+        category:
+          type: string
+          enum: [Weekday, Weekend, Holiday]
+        valid:
+          type: boolean
+        issues:
+          type: array
+          items:
+            type: string
     ScheduleParticipant:
       type: object
       required: [id, scheduleId, doctorProfileId, status, addedAt]
@@ -2366,10 +2933,44 @@ components:
         comment:
           type: string
           maxLength: 500
+    AvailabilityCollectionView:
+      type: object
+      required: [scheduleId, periodLabel, dateRangeLabel, deadlineDate, statusLabel, doctors]
+      properties:
+        scheduleId:
+          $ref: '#/components/schemas/Id'
+        periodLabel:
+          type: string
+        dateRangeLabel:
+          type: string
+        deadlineDate:
+          $ref: '#/components/schemas/Date'
+        statusLabel:
+          $ref: '#/components/schemas/ScheduleStatusLabel'
+        doctors:
+          type: array
+          items:
+            $ref: '#/components/schemas/AvailabilityCollectionDoctor'
+    AvailabilityCollectionDoctor:
+      type: object
+      required: [id, name, status, submittedAt]
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        name:
+          type: string
+        status:
+          type: string
+          enum: [Zaakceptowane, Oczekuje]
+        submittedAt:
+          type:
+            - string
+            - 'null'
+          format: date
 
     LeaveRequest:
       type: object
-      required: [id, scheduleId, doctorProfileId, dateFrom, dateTo, status]
+      required: [id, scheduleId, doctorProfileId, dateFrom, dateTo, status, submittedAt]
       properties:
         id:
           $ref: '#/components/schemas/Id'
@@ -2383,20 +2984,42 @@ components:
           $ref: '#/components/schemas/Date'
         status:
           $ref: '#/components/schemas/LeaveRequestStatus'
+        submittedAt:
+          $ref: '#/components/schemas/Date'
+        typeLabel:
+          type: string
         reason:
+          type: string
+        rejectionReason:
           type: string
         reviewedByUserId:
           $ref: '#/components/schemas/Id'
         reviewedAt:
           $ref: '#/components/schemas/Timestamp'
+    LeaveRequestListItem:
+      type: object
+      required: [request, doctorName, typeLabel, submittedAt]
+      properties:
+        request:
+          $ref: '#/components/schemas/LeaveRequest'
+        doctorName:
+          type: string
+        typeLabel:
+          type: string
+        submittedAt:
+          $ref: '#/components/schemas/Date'
+        rejectionReason:
+          type: string
     LeaveRequestCreateRequest:
       type: object
-      required: [dateFrom, dateTo]
+      required: [dateFrom, dateTo, typeLabel]
       properties:
         dateFrom:
           $ref: '#/components/schemas/Date'
         dateTo:
           $ref: '#/components/schemas/Date'
+        typeLabel:
+          type: string
         reason:
           type: string
           maxLength: 1000
@@ -2634,13 +3257,118 @@ components:
           type: string
         decidedAt:
           $ref: '#/components/schemas/Timestamp'
+    SwapOptionsResponse:
+      type: object
+      required: [enabled, scheduleStatus, myShifts, doctors]
+      properties:
+        enabled:
+          type: boolean
+        scheduleStatus:
+          $ref: '#/components/schemas/ScheduleStatus'
+        myShifts:
+          type: array
+          items:
+            $ref: '#/components/schemas/SwapShiftOption'
+        doctors:
+          type: array
+          items:
+            $ref: '#/components/schemas/SwapDoctorOption'
+    SwapShiftOption:
+      type: object
+      required: [shift, assignment, day, categoryLabel]
+      properties:
+        shift:
+          $ref: '#/components/schemas/Shift'
+        assignment:
+          $ref: '#/components/schemas/Assignment'
+        day:
+          type: string
+        categoryLabel:
+          type: string
+    SwapDoctorOption:
+      type: object
+      required: [id, name, shifts]
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        name:
+          type: string
+        shifts:
+          type: array
+          items:
+            $ref: '#/components/schemas/SwapShiftOption'
+    DoctorSwapApprovalView:
+      type: object
+      required: [id, fromDoctor, myShift, theirShift, requestedAt, valid, issues]
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        fromDoctor:
+          type: string
+        myShift:
+          $ref: '#/components/schemas/SwapApprovalShiftSummary'
+        theirShift:
+          $ref: '#/components/schemas/SwapApprovalShiftSummary'
+        requestedAt:
+          $ref: '#/components/schemas/Date'
+        valid:
+          type: boolean
+        issues:
+          type: array
+          items:
+            type: string
+    CoordinatorSwapApprovalItem:
+      type: object
+      required: [id, doctorA, doctorB, shiftA, shiftB, status, valid, issues, requestedAt]
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        doctorA:
+          type: string
+        doctorB:
+          type: string
+        shiftA:
+          type: string
+        shiftB:
+          type: string
+        status:
+          type: string
+          enum: [Pending, Approved, Rejected]
+        valid:
+          type: boolean
+        issues:
+          type: array
+          items:
+            type: string
+        requestedAt:
+          $ref: '#/components/schemas/Date'
+    CoordinatorSwapApprovalListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/CoordinatorSwapApprovalItem'
+    SwapApprovalShiftSummary:
+      type: object
+      required: [date, day, category]
+      properties:
+        date:
+          $ref: '#/components/schemas/Date'
+        day:
+          type: string
+        category:
+          type: string
 
     ScheduleMetricsResponse:
       type: object
-      required: [scheduleId, generatedAt, doctorMetrics, summary]
+      required: [scheduleId, periodLabel, generatedAt, doctorMetrics, summary]
       properties:
         scheduleId:
           $ref: '#/components/schemas/Id'
+        periodLabel:
+          type: string
         generatedAt:
           $ref: '#/components/schemas/Timestamp'
         summary:
@@ -2661,11 +3389,28 @@ components:
             $ref: '#/components/schemas/DoctorScheduleMetric'
     DoctorScheduleMetric:
       type: object
-      required: [doctorProfileId, assignmentCount, totalDutyMinutes, optOutUsed]
+      required:
+        - doctorProfileId
+        - doctorName
+        - assignmentCount
+        - weekdayShiftCount
+        - weekendShiftCount
+        - holidayShiftCount
+        - totalDutyMinutes
+        - totalHours
+        - optOutUsed
       properties:
         doctorProfileId:
           $ref: '#/components/schemas/Id'
+        doctorName:
+          type: string
         assignmentCount:
+          type: integer
+        weekdayShiftCount:
+          type: integer
+        weekendShiftCount:
+          type: integer
+        holidayShiftCount:
           type: integer
         categoryICount:
           type: integer
@@ -2674,6 +3419,8 @@ components:
         categoryIIICount:
           type: integer
         totalDutyMinutes:
+          type: integer
+        totalHours:
           type: integer
         overtimeMinutes:
           type: integer
@@ -2764,6 +3511,20 @@ components:
           type: object
           additionalProperties: true
         reason:
+          type: string
+        category:
+          $ref: '#/components/schemas/AuditCategory'
+        severity:
+          $ref: '#/components/schemas/AuditSeverity'
+        actorLabel:
+          type: string
+        actionLabel:
+          type: string
+        resourceLabel:
+          type: string
+        ipAddress:
+          type: string
+        details:
           type: string
     AuditLogListResponse:
       type: object
