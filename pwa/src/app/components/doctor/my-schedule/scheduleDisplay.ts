@@ -1,4 +1,4 @@
-import type { ShiftCalendarCategory } from "../../../../fixtures/schedules.fixture";
+import type { ShiftCalendarCategory } from "../../../../services/scheduleService";
 
 export const categoryColors: Record<ShiftCalendarCategory, string> = {
   Weekday: "bg-gray-100 text-gray-800",

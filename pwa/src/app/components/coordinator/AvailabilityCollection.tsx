@@ -1,21 +1,27 @@
 import { useState } from "react";
 import { useParams, Link } from "react-router";
 import { Mail, CheckCircle, XCircle, Clock } from "lucide-react";
+import { useAsyncResource } from "../../hooks/useAsyncResource";
+import { availabilityService } from "../../../services/availabilityService";
 import { ScheduleStatusBadge } from "../shared/ScheduleStatusBadge";
 
 export function AvailabilityCollection() {
   const { id } = useParams();
   const [showReminder, setShowReminder] = useState(false);
+  const availabilityState = useAsyncResource(
+    () => availabilityService.getAvailabilityCollection(id),
+    [id],
+  );
 
-  const doctors = [
-    { id: 1, name: "Dr Anna Kowalska", status: "Zaakceptowane" as const, submittedAt: "2026-04-20" },
-    { id: 2, name: "Dr Jan Nowak", status: "Zaakceptowane" as const, submittedAt: "2026-04-19" },
-    { id: 3, name: "Dr Maria Wiśniewska", status: "Oczekuje" as const, submittedAt: null },
-    { id: 4, name: "Dr Piotr Zieliński", status: "Zaakceptowane" as const, submittedAt: "2026-04-21" },
-    { id: 5, name: "Dr Katarzyna Lewandowska", status: "Oczekuje" as const, submittedAt: null },
-    { id: 6, name: "Dr Tomasz Kamiński", status: "Zaakceptowane" as const, submittedAt: "2026-04-22" },
-  ];
+  if (availabilityState.status === "loading") {
+    return <div className="p-8 text-gray-600">Ładowanie dostępności...</div>;
+  }
 
+  if (availabilityState.status === "error") {
+    return <div className="p-8 text-red-700">{availabilityState.error}</div>;
+  }
+
+  const { doctors, periodLabel, dateRangeLabel, deadlineDate, statusLabel } = availabilityState.data;
   const submitted = doctors.filter((d) => d.status === "Zaakceptowane").length;
   const total = doctors.length;
   const percentage = Math.round((submitted / total) * 100);
@@ -31,9 +37,9 @@ export function AvailabilityCollection() {
       <div className="flex items-start justify-between mb-8">
         <div>
           <h1 className="text-3xl font-semibold text-gray-900">Zbieranie dostępności</h1>
-          <p className="text-gray-600 mt-2">Maj 2026 (01.05.2026 - 31.05.2026)</p>
+          <p className="text-gray-600 mt-2">{periodLabel} ({dateRangeLabel})</p>
         </div>
-        <ScheduleStatusBadge status="Szkic" />
+        <ScheduleStatusBadge status={statusLabel} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
@@ -60,7 +66,7 @@ export function AvailabilityCollection() {
             <Clock className="w-5 h-5 text-amber-600" />
           </div>
           <p className="text-3xl font-semibold text-gray-900">4 dni</p>
-          <p className="text-sm text-gray-600 mt-2">28.04.2026</p>
+          <p className="text-sm text-gray-600 mt-2">{deadlineDate}</p>
         </div>
 
         <div className="bg-white rounded-lg border border-gray-200 p-6">

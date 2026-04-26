@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Save } from "lucide-react";
-import { systemSettingsFixture } from "../../../fixtures/settings.fixture";
+import { useAsyncResource } from "../../hooks/useAsyncResource";
+import { settingsService, type SystemSettings } from "../../../services/settingsService";
 import {
   AutomationSettingsSection,
   LegalLimitsSection,
@@ -10,11 +11,35 @@ import {
 } from "./settings/SettingsSections";
 
 export function SystemSettings() {
-  const [settings, setSettings] = useState(systemSettingsFixture);
+  const settingsState = useAsyncResource(
+    async () => ({
+      settings: await settingsService.getSystemSettings(),
+      categories: await settingsService.listPreferenceCategories(),
+    }),
+    [],
+  );
+  const [settings, setSettings] = useState<SystemSettings | null>(null);
 
-  const handleSave = () => {
+  useEffect(() => {
+    if (settingsState.status === "success" && settings === null) {
+      setSettings(settingsState.data.settings);
+    }
+  }, [settingsState, settings]);
+
+  const handleSave = async () => {
+    if (!settings) return;
+
+    await settingsService.saveSystemSettings(settings);
     alert("Ustawienia zostały zapisane");
   };
+
+  if (settingsState.status === "error") {
+    return <div className="p-4 md:p-8 text-red-700">{settingsState.error}</div>;
+  }
+
+  if (settingsState.status === "loading" || settings === null) {
+    return <div className="p-4 md:p-8 text-gray-600">Ładowanie ustawień...</div>;
+  }
 
   return (
     <div className="p-4 md:p-8">
@@ -28,7 +53,7 @@ export function SystemSettings() {
         <LegalLimitsSection settings={settings} onChange={setSettings} />
         <NotificationSettingsSection settings={settings} onChange={setSettings} />
         <AutomationSettingsSection settings={settings} onChange={setSettings} />
-        <PreferenceCategoriesSection />
+        <PreferenceCategoriesSection categories={settingsState.data.categories} />
       </div>
 
       <div className="mt-6 flex justify-end">

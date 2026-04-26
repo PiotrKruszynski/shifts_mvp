@@ -1,6 +1,6 @@
 # Open Questions
 
-Last updated: 2026-04-26 07:53Z
+Last updated: 2026-04-26 11:24Z
 
 ## OQ-001 - Prompt path mismatch vs repository paths
 
@@ -113,3 +113,16 @@ Resolution:
 - on 2026-04-26, the Figma Make source snapshot was provided locally under `pwa/`;
 - the local snapshot includes role components, UI primitives, styles, package/config files, guidelines and import documentation;
 - Phase 01 could continue from the local snapshot without guessing MCP resource bodies.
+
+## OQ-006 - Phase 03 mock service composites vs OpenAPI operation boundaries
+
+Status: Open for Phase 04
+
+Phase 03 introduced frontend-friendly async mock services that preserve Phase 02 UI behavior. Several methods intentionally return composite view models rather than one-to-one OpenAPI payloads.
+
+Needs Phase 04 decision:
+
+- whether dashboard, department summary and swap candidate data should be first-class endpoints or assembled by the frontend from existing operations;
+- whether system settings should become a dedicated contract or remain split across configuration resources such as preference categories and constraint rules;
+- whether password reset belongs in the MVP OpenAPI contract, because the mock auth service supports it but the current Auth paths do not;
+- how doctor-contextual leave request creation maps to the schedule-scoped OpenAPI route.

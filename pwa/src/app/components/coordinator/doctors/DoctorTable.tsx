@@ -1,8 +1,8 @@
 import { CheckCircle, Clock, Mail, XCircle } from "lucide-react";
-import type { DoctorDirectoryFixture } from "../../../../fixtures/users.fixture";
+import type { DoctorDirectoryEntry } from "../../../../services/doctorService";
 
 interface DoctorTableProps {
-  doctors: DoctorDirectoryFixture[];
+  doctors: DoctorDirectoryEntry[];
 }
 
 export function DoctorTable({ doctors }: DoctorTableProps) {

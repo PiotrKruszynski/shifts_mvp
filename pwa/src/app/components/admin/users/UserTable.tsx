@@ -1,6 +1,6 @@
 import { CheckCircle, Mail, XCircle } from "lucide-react";
 import type { Role, UserStatus } from "../../../../domain/types";
-import type { AdminUserFixture } from "../../../../fixtures/users.fixture";
+import type { AdminUserListItem } from "../../../../services/userService";
 
 const roleColors: Record<Role, string> = {
   ADMIN: "bg-purple-100 text-purple-800 border-purple-300",
@@ -34,7 +34,7 @@ function statusIcon(status: UserStatus) {
 }
 
 interface UserTableProps {
-  users: AdminUserFixture[];
+  users: AdminUserListItem[];
 }
 
 export function UserTable({ users }: UserTableProps) {

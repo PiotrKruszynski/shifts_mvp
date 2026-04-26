@@ -1,49 +1,21 @@
 import { Link } from "react-router";
 import { Calendar, Plus } from "lucide-react";
+import { useAsyncResource } from "../../hooks/useAsyncResource";
+import { scheduleService } from "../../../services/scheduleService";
 import { ScheduleStatusBadge } from "../shared/ScheduleStatusBadge";
 
-type ScheduleStatusLabel = "Szkic" | "Wygenerowany" | "Opublikowany" | "Zarchiwizowany";
-
-interface ScheduleRow {
-  id: string;
-  period: string;
-  dateRange: string;
-  status: ScheduleStatusLabel;
-  doctors: number;
-  shifts: number;
-  deadline: string;
-}
-
 export function Schedules() {
-  const schedules: ScheduleRow[] = [
-    {
-      id: "1",
-      period: "Maj 2026",
-      dateRange: "01.05.2026 - 31.05.2026",
-      status: "Wygenerowany",
-      doctors: 24,
-      shifts: 31,
-      deadline: "2026-04-28",
-    },
-    {
-      id: "2",
-      period: "Kwiecień 2026",
-      dateRange: "01.04.2026 - 30.04.2026",
-      status: "Opublikowany",
-      doctors: 24,
-      shifts: 30,
-      deadline: "2026-03-25",
-    },
-    {
-      id: "3",
-      period: "Marzec 2026",
-      dateRange: "01.03.2026 - 31.03.2026",
-      status: "Zarchiwizowany",
-      doctors: 23,
-      shifts: 31,
-      deadline: "2026-02-25",
-    },
-  ];
+  const schedulesState = useAsyncResource(() => scheduleService.listCoordinatorSchedules(), []);
+
+  if (schedulesState.status === "loading") {
+    return <div className="p-8 text-gray-600">Ładowanie grafików...</div>;
+  }
+
+  if (schedulesState.status === "error") {
+    return <div className="p-8 text-red-700">{schedulesState.error}</div>;
+  }
+
+  const schedules = schedulesState.data;
 
   return (
     <div className="p-8">

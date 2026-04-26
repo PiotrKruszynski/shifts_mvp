@@ -1,12 +1,24 @@
 import { useState } from "react";
 import { UserPlus } from "lucide-react";
-import { doctorDirectoryFixture } from "../../../fixtures/users.fixture";
+import { useAsyncResource } from "../../hooks/useAsyncResource";
+import { doctorService } from "../../../services/doctorService";
 import { AddDoctorDialog } from "./doctors/AddDoctorDialog";
 import { DoctorStats } from "./doctors/DoctorStats";
 import { DoctorTable } from "./doctors/DoctorTable";
 
 export function Doctors() {
   const [showAddModal, setShowAddModal] = useState(false);
+  const doctorsState = useAsyncResource(() => doctorService.listDoctorDirectory(), []);
+
+  if (doctorsState.status === "loading") {
+    return <div className="p-8 text-gray-600">Ładowanie lekarzy...</div>;
+  }
+
+  if (doctorsState.status === "error") {
+    return <div className="p-8 text-red-700">{doctorsState.error}</div>;
+  }
+
+  const doctors = doctorsState.data;
 
   return (
     <div className="p-8">
@@ -24,8 +36,8 @@ export function Doctors() {
         </button>
       </div>
 
-      <DoctorStats doctors={doctorDirectoryFixture} />
-      <DoctorTable doctors={doctorDirectoryFixture} />
+      <DoctorStats doctors={doctors} />
+      <DoctorTable doctors={doctors} />
 
       {showAddModal && <AddDoctorDialog onClose={() => setShowAddModal(false)} />}
     </div>

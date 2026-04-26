@@ -1,9 +1,9 @@
-import type { DoctorScheduleShiftFixture } from "../../../../fixtures/schedules.fixture";
+import type { DoctorScheduleShift } from "../../../../services/scheduleService";
 import { ShiftCard } from "./ShiftCard";
 import { categoryColors } from "./scheduleDisplay";
 
 interface ScheduleCalendarViewProps {
-  shifts: DoctorScheduleShiftFixture[];
+  shifts: DoctorScheduleShift[];
 }
 
 export function ScheduleCalendarView({ shifts }: ScheduleCalendarViewProps) {

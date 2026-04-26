@@ -1,13 +1,13 @@
 # 03 — Frontend Mock API / Service Layer Plan
 
-Status: Living Draft
+Status: Complete
 Owner: Frontend Developer Agent
 Orchestrated by: Planning & Orchestration Agent
 Worktree branch: `agent/frontend/03-mock-api`
 Recommended worktree: `../worktrees/shifts-03-mock-api`
 Depends on: `02_frontend_refactor_plan.md` and UX Gate A notes
 Next: `04_openapi_alignment_plan.md`
-Last updated: YYYY-MM-DD HH:MMZ
+Last updated: 2026-04-26 11:24Z
 
 ## Objective
 
@@ -131,44 +131,44 @@ Mock data must cover the MVP-critical scenarios:
 
 ### A. Preflight
 
-- [ ] (YYYY-MM-DD HH:MMZ) Confirm branch/worktree: `agent/frontend/03-mock-api`.
-- [ ] (YYYY-MM-DD HH:MMZ) Read phase 02 handoff and UX Gate A notes.
-- [ ] (YYYY-MM-DD HH:MMZ) Identify all components still consuming inline business data.
-- [ ] (YYYY-MM-DD HH:MMZ) Identify domain types that service functions should return.
+- [x] (2026-04-26 11:24Z) Confirm branch/worktree: `agent/frontend/03-mock-api`.
+- [x] (2026-04-26 11:24Z) Read phase 02 handoff and UX Gate A notes.
+- [x] (2026-04-26 11:24Z) Identify all components still consuming inline business data.
+- [x] (2026-04-26 11:24Z) Identify domain types that service functions should return.
 
 ### B. Mock data seed
 
-- [ ] (YYYY-MM-DD HH:MMZ) Create deterministic mock seed data for users, roles, department and doctors.
-- [ ] (YYYY-MM-DD HH:MMZ) Create schedule examples for `DRAFT`, `GENERATED`, `PUBLISHED` and `ARCHIVED` states.
-- [ ] (YYYY-MM-DD HH:MMZ) Create 24-hour shifts and assignments with realistic statuses.
-- [ ] (YYYY-MM-DD HH:MMZ) Create availability declarations, preference category data and leave requests.
-- [ ] (YYYY-MM-DD HH:MMZ) Create valid and invalid swap scenarios.
-- [ ] (YYYY-MM-DD HH:MMZ) Create conflict reports with explicit reason codes and shift context.
-- [ ] (YYYY-MM-DD HH:MMZ) Create audit log entries for generation, publication and swap approval.
+- [x] (2026-04-26 11:24Z) Create deterministic mock seed data for users, roles, department and doctors.
+- [x] (2026-04-26 11:24Z) Create schedule examples for `DRAFT`, `GENERATED`, `PUBLISHED` and `ARCHIVED` states.
+- [x] (2026-04-26 11:24Z) Create 24-hour shifts and assignments with realistic statuses.
+- [x] (2026-04-26 11:24Z) Create availability declarations, preference category data and leave requests.
+- [x] (2026-04-26 11:24Z) Create valid and invalid swap scenarios.
+- [x] (2026-04-26 11:24Z) Create conflict reports with explicit reason codes and shift context.
+- [x] (2026-04-26 11:24Z) Create audit log entries for generation, publication and swap approval.
 
 ### C. Service functions
 
-- [ ] (YYYY-MM-DD HH:MMZ) Implement async service functions for Auth, Users, Departments and Doctors.
-- [ ] (YYYY-MM-DD HH:MMZ) Implement async service functions for Schedules, Shifts and Assignments.
-- [ ] (YYYY-MM-DD HH:MMZ) Implement async service functions for Availability and Leave Requests.
-- [ ] (YYYY-MM-DD HH:MMZ) Implement async service functions for Generation and Validation.
-- [ ] (YYYY-MM-DD HH:MMZ) Implement async service functions for Swaps.
-- [ ] (YYYY-MM-DD HH:MMZ) Implement async service functions for Audit and Metrics if used by the UI.
-- [ ] (YYYY-MM-DD HH:MMZ) Add small artificial latency only if it helps loading-state validation; keep it configurable.
+- [x] (2026-04-26 11:24Z) Implement async service functions for Auth, Users, Departments and Doctors.
+- [x] (2026-04-26 11:24Z) Implement async service functions for Schedules, Shifts and Assignments.
+- [x] (2026-04-26 11:24Z) Implement async service functions for Availability and Leave Requests.
+- [x] (2026-04-26 11:24Z) Implement async service functions for Generation and Validation.
+- [x] (2026-04-26 11:24Z) Implement async service functions for Swaps.
+- [x] (2026-04-26 11:24Z) Implement async service functions for Audit and Metrics if used by the UI.
+- [x] (2026-04-26 11:24Z) Add small artificial latency only if it helps loading-state validation; keep it configurable.
 
 ### D. UI consumption
 
-- [ ] (YYYY-MM-DD HH:MMZ) Replace direct mock imports in components with service calls.
-- [ ] (YYYY-MM-DD HH:MMZ) Add or preserve loading states for async service calls.
-- [ ] (YYYY-MM-DD HH:MMZ) Add or preserve error states for failed service calls.
-- [ ] (YYYY-MM-DD HH:MMZ) Preserve visual behavior from phase 02.
-- [ ] (YYYY-MM-DD HH:MMZ) Do not introduce real network calls.
+- [x] (2026-04-26 11:24Z) Replace direct mock imports in components with service calls.
+- [x] (2026-04-26 11:24Z) Add or preserve loading states for async service calls.
+- [x] (2026-04-26 11:24Z) Add or preserve error states for failed service calls.
+- [x] (2026-04-26 11:24Z) Preserve visual behavior from phase 02.
+- [x] (2026-04-26 11:24Z) Do not introduce real network calls.
 
 ### E. Contract gap report
 
-- [ ] (YYYY-MM-DD HH:MMZ) Compare service names and payload shapes with `docs/architecture/openapi.yaml` at a high level.
-- [ ] (YYYY-MM-DD HH:MMZ) Create `docs/reports/mock_api_report.md` with service inventory and OpenAPI gaps.
-- [ ] (YYYY-MM-DD HH:MMZ) Record any ambiguous endpoint or schema requirement for phase 04.
+- [x] (2026-04-26 11:24Z) Compare service names and payload shapes with `docs/architecture/openapi.yaml` at a high level.
+- [x] (2026-04-26 11:24Z) Create `docs/reports/mock_api_report.md` with service inventory and OpenAPI gaps.
+- [x] (2026-04-26 11:24Z) Record any ambiguous endpoint or schema requirement for phase 04.
 
 ## Validation commands
 
@@ -213,16 +213,17 @@ pnpm run test
 
 ## Handoff
 
-- Branch/worktree:
-- Completed:
-- Validation:
-- Known issues:
-- Open questions:
-- Files changed:
-- Recommended next step:
+- Branch/worktree: `agent/frontend/03-mock-api` in `/Users/piotr/projects/worktrees/shifts-03-mock-api`
+- Completed: async frontend mock services, deterministic seed data, app component service consumption, report and Phase 04 open question.
+- Validation: `corepack pnpm install`, `corepack pnpm run typecheck`, `corepack pnpm run lint`, and `corepack pnpm run build` passed. Vite emitted the main-bundle size warning.
+- Known issues: service method names and composite payloads are frontend-oriented and require Phase 04 OpenAPI alignment.
+- Open questions: OQ-006 in `docs/open_questions.md`.
+- Files changed: `pwa/src/services/**`, `pwa/src/mocks/seed.ts`, service-consuming `pwa/src/app/**`, `docs/reports/mock_api_report.md`, `docs/open_questions.md`.
+- Recommended next step: run Phase 04 OpenAPI alignment after frontend mock-service acceptance.
 
 ## Change log
 
 | Timestamp UTC | Agent | Change |
 |---|---|---|
 | YYYY-MM-DD HH:MMZ | Frontend Developer Agent | Initial English mock API/service layer plan. |
+| 2026-04-26 11:24Z | Frontend Mock API / Service Layer Agent | Implemented Phase 03 async mock service layer and UI consumption handoff. |

@@ -1,4 +1,4 @@
-import type { LeaveRequestFixture } from "../../../../fixtures/leave-requests.fixture";
+import type { LeaveRequestListItem } from "../../../../services/leaveRequestService";
 import {
   leaveRequestDayCount,
   leaveStatusColors,
@@ -7,7 +7,7 @@ import {
 } from "./leaveRequestDisplay";
 
 interface LeaveRequestListProps {
-  requests: LeaveRequestFixture[];
+  requests: LeaveRequestListItem[];
 }
 
 export function LeaveRequestList({ requests }: LeaveRequestListProps) {

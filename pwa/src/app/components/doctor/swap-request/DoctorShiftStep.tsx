@@ -1,8 +1,8 @@
 import { CheckCircle, User } from "lucide-react";
-import type { SwapDoctorOptionFixture } from "../../../../fixtures/swaps.fixture";
+import type { SwapDoctorOption } from "../../../../services/swapRequestService";
 
 interface DoctorShiftStepProps {
-  doctors: SwapDoctorOptionFixture[];
+  doctors: SwapDoctorOption[];
   selectedShiftId: string | null;
   onSelectShift: (doctorId: string, shiftId: string) => void;
   onBack: () => void;

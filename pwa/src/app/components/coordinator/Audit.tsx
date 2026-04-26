@@ -1,81 +1,9 @@
 import { Shield, Filter, Download, User, FileText } from "lucide-react";
-
-interface AuditEvent {
-  id: string;
-  timestamp: string;
-  user: string;
-  action: string;
-  entity: string;
-  details: string;
-  type: "Create" | "Update" | "Generate" | "Publish" | "Swap" | "Override";
-}
+import { useAsyncResource } from "../../hooks/useAsyncResource";
+import { auditService } from "../../../services/auditService";
 
 export function Audit() {
-  const events: AuditEvent[] = [
-    {
-      id: "1",
-      timestamp: "2026-04-24 14:32:15",
-      user: "Koordynator - Jan Kowalski",
-      action: "Opublikował grafik",
-      entity: "Grafik Maj 2026",
-      details: "Status zmieniony z Wygenerowany na Opublikowany",
-      type: "Publish",
-    },
-    {
-      id: "2",
-      timestamp: "2026-04-24 14:15:42",
-      user: "Koordynator - Jan Kowalski",
-      action: "Zaakceptował zamianę",
-      entity: "Zamiana dyżurów",
-      details: "Dr Anna Kowalska ↔ Dr Jan Nowak (15.05.2026 ↔ 18.05.2026)",
-      type: "Swap",
-    },
-    {
-      id: "3",
-      timestamp: "2026-04-24 13:45:18",
-      user: "Dr Anna Kowalska",
-      action: "Zaproponował zamianę",
-      entity: "Zamiana dyżurów",
-      details: "Propozycja zamiany dyżuru z Dr Jan Nowak",
-      type: "Swap",
-    },
-    {
-      id: "4",
-      timestamp: "2026-04-24 11:20:33",
-      user: "Koordynator - Jan Kowalski",
-      action: "Nadpisał preferencję",
-      entity: "Grafik Maj 2026",
-      details: "Przypisał Dr Piotr Zieliński do dyżuru 10.05.2026 (Niepreferowany dzień). Uzasadnienie: Brak alternatywnych lekarzy z wymaganymi kwalifikacjami",
-      type: "Override",
-    },
-    {
-      id: "5",
-      timestamp: "2026-04-23 16:05:22",
-      user: "Koordynator - Jan Kowalski",
-      action: "Wygenerował grafik",
-      entity: "Grafik Maj 2026",
-      details: "Uruchomił generator z 24 lekarzami i 31 dyżurami",
-      type: "Generate",
-    },
-    {
-      id: "6",
-      timestamp: "2026-04-23 15:30:00",
-      user: "Koordynator - Jan Kowalski",
-      action: "Zamknął okno zgłoszeń",
-      entity: "Grafik Maj 2026",
-      details: "Deadline dostępności: 21/24 lekarzy zgłosiło dostępność",
-      type: "Update",
-    },
-    {
-      id: "7",
-      timestamp: "2026-04-20 09:15:44",
-      user: "Koordynator - Jan Kowalski",
-      action: "Utworzył grafik",
-      entity: "Grafik Maj 2026",
-      details: "Okres: 01.05.2026 - 31.05.2026, Deadline: 28.04.2026",
-      type: "Create",
-    },
-  ];
+  const auditState = useAsyncResource(() => auditService.listScheduleAuditEvents(), []);
 
   const typeColors = {
     Create: "bg-blue-100 text-blue-800 border-blue-300",
@@ -94,6 +22,16 @@ export function Audit() {
     Swap: "Zamiana",
     Override: "Nadpisanie",
   };
+
+  if (auditState.status === "loading") {
+    return <div className="p-8 text-gray-600">Ładowanie audytu grafiku...</div>;
+  }
+
+  if (auditState.status === "error") {
+    return <div className="p-8 text-red-700">{auditState.error}</div>;
+  }
+
+  const events = auditState.data;
 
   return (
     <div className="p-8">

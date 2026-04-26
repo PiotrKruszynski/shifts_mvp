@@ -1,8 +1,8 @@
 import { CheckCircle, Mail, XCircle } from "lucide-react";
-import type { AdminUserFixture } from "../../../../fixtures/users.fixture";
+import type { AdminUserListItem } from "../../../../services/userService";
 
 interface UserStatsProps {
-  users: AdminUserFixture[];
+  users: AdminUserListItem[];
 }
 
 export function UserStats({ users }: UserStatsProps) {

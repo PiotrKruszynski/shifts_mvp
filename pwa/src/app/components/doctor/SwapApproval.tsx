@@ -1,56 +1,42 @@
 import { Link, useNavigate, useParams } from "react-router";
 import { AlertCircle, Calendar, CheckCircle, RefreshCw, XCircle } from "lucide-react";
-import { doctorCurrentScheduleFixture, doctorSwapFlowEnabledFixture } from "../../../fixtures/schedules.fixture";
-import { pendingSwapFixture } from "../../../fixtures/swaps.fixture";
+import { useAsyncResource } from "../../hooks/useAsyncResource";
+import { swapRequestService } from "../../../services/swapRequestService";
 
 export function SwapApproval() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const approvalState = useAsyncResource(() => swapRequestService.getDoctorSwapApproval(id), [id]);
 
-  const swapRequest =
-    id === pendingSwapFixture.id
-      ? {
-          id: pendingSwapFixture.id,
-          fromDoctor: "Dr Jan Nowak",
-          myShift: {
-            date: "2026-05-01",
-            day: "Czwartek",
-            category: "Święto Pracy",
-          },
-          theirShift: {
-            date: "2026-05-02",
-            day: "Piątek",
-            category: "Dzień powszedni",
-          },
-          requestedAt: "2026-04-25",
-          valid: true,
-          issues: [] as string[],
-        }
-      : null;
-
-  const isPublishedFlow =
-    doctorSwapFlowEnabledFixture &&
-    doctorCurrentScheduleFixture.status === "PUBLISHED" &&
-    swapRequest !== null &&
-    pendingSwapFixture.scheduleId === doctorCurrentScheduleFixture.id;
-
-  const handleApprove = () => {
-    if (!isPublishedFlow) {
+  const handleApprove = async () => {
+    if (approvalState.status !== "success" || !approvalState.data) {
       return;
     }
 
+    await swapRequestService.answerDoctorSwapRequest(approvalState.data.id, "approve");
     navigate("/doctor");
   };
 
-  const handleReject = () => {
-    if (!isPublishedFlow) {
+  const handleReject = async () => {
+    if (approvalState.status !== "success" || !approvalState.data) {
       return;
     }
 
+    await swapRequestService.answerDoctorSwapRequest(approvalState.data.id, "reject");
     navigate("/doctor");
   };
 
-  if (!isPublishedFlow) {
+  if (approvalState.status === "loading") {
+    return <div className="p-4 pb-20 md:pb-4 text-gray-600">Ładowanie propozycji zamiany...</div>;
+  }
+
+  if (approvalState.status === "error") {
+    return <div className="p-4 pb-20 md:pb-4 text-red-700">{approvalState.error}</div>;
+  }
+
+  const swapRequest = approvalState.data;
+
+  if (!swapRequest) {
     return (
       <div className="p-4 pb-20 md:pb-4">
         <div className="mx-auto max-w-3xl rounded-2xl border border-amber-200 bg-white p-6 shadow-sm">

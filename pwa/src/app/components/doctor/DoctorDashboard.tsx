@@ -1,39 +1,32 @@
 import { Link } from "react-router";
 import { Calendar, Clock, CheckCircle, RefreshCw } from "lucide-react";
-import {
-  doctorCurrentScheduleFixture,
-  doctorScheduleShiftsFixture,
-  doctorSwapFlowEnabledFixture,
-} from "../../../fixtures/schedules.fixture";
-import { pendingSwapFixture } from "../../../fixtures/swaps.fixture";
+import { useAsyncResource } from "../../hooks/useAsyncResource";
+import { scheduleService } from "../../../services/scheduleService";
 import { ScheduleStatusBadge } from "../shared/ScheduleStatusBadge";
 
 export function DoctorDashboard() {
-  const upcomingShift = {
-    date: "2026-05-01",
-    day: "Czwartek",
-    category: "Święto - Święto Pracy",
-    hours: "00:00 - 23:59",
-  };
+  const dashboardState = useAsyncResource(() => scheduleService.getDoctorDashboardData(), []);
 
-  const deadlineDate = new Date("2026-04-28");
+  if (dashboardState.status === "loading") {
+    return <div className="p-4 pb-20 md:pb-4 text-gray-600">Ładowanie pulpitu...</div>;
+  }
+
+  if (dashboardState.status === "error") {
+    return <div className="p-4 pb-20 md:pb-4 text-red-700">{dashboardState.error}</div>;
+  }
+
+  const dashboard = dashboardState.data;
+  const upcomingShift = dashboard.upcomingShift;
+  const deadlineDate = new Date(dashboard.availabilityDeadline);
   const daysUntilDeadline = Math.ceil((deadlineDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
   const deadlinePassed = daysUntilDeadline < 0;
-  const scheduleStatusLabel = {
-    DRAFT: "Szkic",
-    GENERATED: "Wygenerowany",
-    PUBLISHED: "Opublikowany",
-    ARCHIVED: "Zarchiwizowany",
-  } as const;
-  const canRequestSwap =
-    doctorSwapFlowEnabledFixture &&
-    doctorScheduleShiftsFixture.some((shift) => shift.canSwap && shift.scheduleStatus === "PUBLISHED");
+  const canRequestSwap = dashboard.canRequestSwap;
 
   return (
     <div className="p-4 pb-20 md:pb-4">
       <div className="mb-6">
-        <h2 className="text-2xl font-semibold text-gray-900">Witaj, Anna!</h2>
-        <p className="text-gray-600 mt-1">Oddział Chirurgii</p>
+        <h2 className="text-2xl font-semibold text-gray-900">Witaj, {dashboard.doctorFirstName}!</h2>
+        <p className="text-gray-600 mt-1">{dashboard.departmentName}</p>
       </div>
 
       <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white mb-6">
@@ -94,9 +87,9 @@ export function DoctorDashboard() {
                 <Calendar className="w-5 h-5 text-blue-600 flex-shrink-0" />
                 <h3 className="font-medium text-blue-900">Status grafiku</h3>
               </div>
-              <p className="text-sm text-blue-700">Maj 2026</p>
+              <p className="text-sm text-blue-700">{dashboard.periodLabel}</p>
             </div>
-            <ScheduleStatusBadge status={scheduleStatusLabel[doctorCurrentScheduleFixture.status]} />
+            <ScheduleStatusBadge status={dashboard.scheduleStatusLabel} />
           </div>
           <Link
             to="/doctor/schedule"
@@ -155,20 +148,20 @@ export function DoctorDashboard() {
         </div>
       </div>
 
-      {canRequestSwap && (
+      {canRequestSwap && dashboard.pendingSwap && (
         <div className="mt-6 bg-white rounded-xl border border-gray-200 p-4">
           <h3 className="font-semibold text-gray-900 mb-4">Aktywne zamiany</h3>
           <div className="space-y-3">
             <div className="flex items-start gap-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
               <RefreshCw className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-amber-900">Oczekuje na Dr Jan Nowak</p>
-                <p className="text-sm text-amber-700 mt-1">01.05.2026 ↔ 02.05.2026</p>
-                <p className="text-xs text-amber-700 mt-1">
-                  Status: {pendingSwapFixture.status === "PENDING_DOCTOR_ACCEPTANCE" ? "oczekuje na akceptację lekarza" : "w toku"}
-                </p>
+                <p className="text-sm font-medium text-amber-900">{dashboard.pendingSwap.title}</p>
+                <p className="text-sm text-amber-700 mt-1">{dashboard.pendingSwap.shiftLabel}</p>
+                <p className="text-xs text-amber-700 mt-1">Status: {dashboard.pendingSwap.status}</p>
               </div>
-              <span className="text-xs text-amber-700 whitespace-nowrap">2 dni temu</span>
+              <span className="text-xs text-amber-700 whitespace-nowrap">
+                {dashboard.pendingSwap.updatedLabel}
+              </span>
             </div>
           </div>
         </div>

@@ -1,7 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import { AlertCircle, Bell, Clock, Globe, Settings, Shield } from "lucide-react";
-import type { SystemSettingsFixture } from "../../../../fixtures/settings.fixture";
-import { preferenceCategoriesFixture } from "../../../../fixtures/settings.fixture";
+import type { PreferenceCategory } from "../../../../domain/types";
+import type { SystemSettings } from "../../../../services/settingsService";
 
 interface SettingsSectionHeaderProps {
   icon: LucideIcon;
@@ -30,8 +30,8 @@ function SettingsSectionHeader({
 }
 
 interface SettingsSectionProps {
-  settings: SystemSettingsFixture;
-  onChange: (settings: SystemSettingsFixture) => void;
+  settings: SystemSettings;
+  onChange: (settings: SystemSettings) => void;
 }
 
 export function RegionalSettingsSection({ settings, onChange }: SettingsSectionProps) {
@@ -50,7 +50,7 @@ export function RegionalSettingsSection({ settings, onChange }: SettingsSectionP
           <select
             value={settings.language}
             onChange={(event) =>
-              onChange({ ...settings, language: event.target.value as SystemSettingsFixture["language"] })
+              onChange({ ...settings, language: event.target.value as SystemSettings["language"] })
             }
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
@@ -228,8 +228,7 @@ export function AutomationSettingsSection({ settings, onChange }: SettingsSectio
             onChange={(event) =>
               onChange({
                 ...settings,
-                defaultScheduleStatus: event.target
-                  .value as SystemSettingsFixture["defaultScheduleStatus"],
+                defaultScheduleStatus: event.target.value as SystemSettings["defaultScheduleStatus"],
               })
             }
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -262,7 +261,11 @@ export function AutomationSettingsSection({ settings, onChange }: SettingsSectio
   );
 }
 
-export function PreferenceCategoriesSection() {
+interface PreferenceCategoriesSectionProps {
+  categories: PreferenceCategory[];
+}
+
+export function PreferenceCategoriesSection({ categories }: PreferenceCategoriesSectionProps) {
   const colorClasses = [
     "bg-blue-50 border-blue-200 text-blue-900 text-blue-700",
     "bg-green-50 border-green-200 text-green-900 text-green-700",
@@ -282,7 +285,7 @@ export function PreferenceCategoriesSection() {
       </div>
 
       <div className="space-y-3">
-        {preferenceCategoriesFixture.map((category, index) => {
+        {categories.map((category, index) => {
           const [containerBg, borderColor, titleColor, descriptionColor] =
             colorClasses[index].split(" ");
 

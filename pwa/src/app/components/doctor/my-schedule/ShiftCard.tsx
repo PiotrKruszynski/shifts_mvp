@@ -1,10 +1,10 @@
 import { Calendar, RefreshCw } from "lucide-react";
 import { Link } from "react-router";
-import type { DoctorScheduleShiftFixture } from "../../../../fixtures/schedules.fixture";
+import type { DoctorScheduleShift } from "../../../../services/scheduleService";
 import { categoryColors } from "./scheduleDisplay";
 
 interface ShiftCardProps {
-  shift: DoctorScheduleShiftFixture;
+  shift: DoctorScheduleShift;
 }
 
 export function ShiftCard({ shift }: ShiftCardProps) {

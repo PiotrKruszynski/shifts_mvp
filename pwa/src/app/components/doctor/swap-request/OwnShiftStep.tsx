@@ -1,8 +1,8 @@
 import { ArrowLeft, CheckCircle } from "lucide-react";
-import type { SwapShiftOptionFixture } from "../../../../fixtures/swaps.fixture";
+import type { SwapShiftOption } from "../../../../services/swapRequestService";
 
 interface OwnShiftStepProps {
-  shifts: SwapShiftOptionFixture[];
+  shifts: SwapShiftOption[];
   selectedShiftId: string | null;
   onSelectShift: (shiftId: string) => void;
   onBack: () => void;

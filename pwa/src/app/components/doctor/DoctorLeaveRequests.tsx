@@ -1,12 +1,24 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import { myLeaveRequestsFixture } from "../../../fixtures/leave-requests.fixture";
+import { useAsyncResource } from "../../hooks/useAsyncResource";
+import { leaveRequestService } from "../../../services/leaveRequestService";
 import { LeaveRequestFormDialog } from "./leave-requests/LeaveRequestFormDialog";
 import { LeaveRequestList } from "./leave-requests/LeaveRequestList";
 import { LeaveRequestStats } from "./leave-requests/LeaveRequestStats";
 
 export function DoctorLeaveRequests() {
   const [showNewRequest, setShowNewRequest] = useState(false);
+  const requestsState = useAsyncResource(() => leaveRequestService.listDoctorLeaveRequests(), []);
+
+  if (requestsState.status === "loading") {
+    return <div className="p-4 pb-20 md:pb-4 text-gray-600">Ładowanie wniosków...</div>;
+  }
+
+  if (requestsState.status === "error") {
+    return <div className="p-4 pb-20 md:pb-4 text-red-700">{requestsState.error}</div>;
+  }
+
+  const requests = requestsState.data;
 
   return (
     <div className="p-4 pb-20 md:pb-4">
@@ -24,8 +36,8 @@ export function DoctorLeaveRequests() {
         </button>
       </div>
 
-      <LeaveRequestStats requests={myLeaveRequestsFixture} />
-      <LeaveRequestList requests={myLeaveRequestsFixture} />
+      <LeaveRequestStats requests={requests} />
+      <LeaveRequestList requests={requests} />
 
       {showNewRequest && <LeaveRequestFormDialog onClose={() => setShowNewRequest(false)} />}
     </div>

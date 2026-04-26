@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { Link } from "react-router";
 import { Mail, Calendar, ArrowLeft } from "lucide-react";
+import { authService } from "../../../services/authService";
 
 export function ResetPassword() {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    await authService.resetPassword(email);
     setSubmitted(true);
   };
 

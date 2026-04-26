@@ -1,19 +1,31 @@
 import { useState } from "react";
 import { AlertCircle, Calendar, List } from "lucide-react";
-import { doctorScheduleShiftsFixture } from "../../../fixtures/schedules.fixture";
+import { useAsyncResource } from "../../hooks/useAsyncResource";
+import { scheduleService } from "../../../services/scheduleService";
 import { ScheduleCalendarView } from "./my-schedule/ScheduleCalendarView";
 import { ScheduleListView } from "./my-schedule/ScheduleListView";
 import { ScheduleStats } from "./my-schedule/ScheduleStats";
 
 export function MySchedule() {
   const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
-  const hasShifts = doctorScheduleShiftsFixture.length > 0;
+  const scheduleState = useAsyncResource(() => scheduleService.getDoctorSchedule(), []);
+
+  if (scheduleState.status === "loading") {
+    return <div className="p-4 pb-20 md:pb-4 text-gray-600">Ładowanie grafiku...</div>;
+  }
+
+  if (scheduleState.status === "error") {
+    return <div className="p-4 pb-20 md:pb-4 text-red-700">{scheduleState.error}</div>;
+  }
+
+  const { shifts, periodLabel } = scheduleState.data;
+  const hasShifts = shifts.length > 0;
 
   return (
     <div className="p-4 pb-20 md:pb-4">
       <div className="mb-6">
         <h2 className="text-2xl font-semibold text-gray-900">Mój grafik</h2>
-        <p className="text-gray-600 mt-1">Maj 2026 - Przypisane dyżury</p>
+        <p className="text-gray-600 mt-1">{periodLabel} - Przypisane dyżury</p>
       </div>
 
       <div className="flex items-center justify-between mb-4">
@@ -56,12 +68,12 @@ export function MySchedule() {
         </div>
       ) : (
         <>
-          <ScheduleStats shifts={doctorScheduleShiftsFixture} />
+          <ScheduleStats shifts={shifts} />
 
           {viewMode === "list" ? (
-            <ScheduleListView shifts={doctorScheduleShiftsFixture} />
+            <ScheduleListView shifts={shifts} />
           ) : (
-            <ScheduleCalendarView shifts={doctorScheduleShiftsFixture} />
+            <ScheduleCalendarView shifts={shifts} />
           )}
         </>
       )}

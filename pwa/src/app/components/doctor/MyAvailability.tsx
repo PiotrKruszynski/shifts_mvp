@@ -1,32 +1,35 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Calendar, CheckCircle2, Info, Save } from "lucide-react";
-
-type AvailabilityStatus =
-  | "available"
-  | "unavailable"
-  | "preferred"
-  | "not-preferred"
-  | "leave-pending"
-  | "leave-approved";
-
-interface DayAvailability {
-  date: string;
-  status: AvailabilityStatus;
-  category: "I" | "II" | "III" | null;
-  comment: string;
-}
+import { useAsyncResource } from "../../hooks/useAsyncResource";
+import {
+  availabilityService,
+  type AvailabilityStatus,
+  type DayAvailability,
+} from "../../../services/availabilityService";
 
 export function MyAvailability() {
+  const availabilityState = useAsyncResource(() => availabilityService.getMyAvailability(), []);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [availability, setAvailability] = useState<Record<string, DayAvailability>>({
-    "2026-05-01": { date: "2026-05-01", status: "preferred", category: "I", comment: "" },
-    "2026-05-10": { date: "2026-05-10", status: "unavailable", category: null, comment: "Wizyta lekarska" },
-    "2026-05-15": { date: "2026-05-15", status: "leave-approved", category: null, comment: "" },
-  });
+  const [availability, setAvailability] = useState<Record<string, DayAvailability> | null>(null);
   const [pendingChanges, setPendingChanges] = useState<Record<string, DayAvailability>>({});
   const [saveFeedbackVisible, setSaveFeedbackVisible] = useState(false);
 
-  const deadlineDate = new Date("2026-04-28");
+  useEffect(() => {
+    if (availabilityState.status === "success" && availability === null) {
+      setAvailability(availabilityState.data.days);
+    }
+  }, [availabilityState, availability]);
+
+  if (availabilityState.status === "error") {
+    return <div className="p-4 pb-20 md:pb-4 text-red-700">{availabilityState.error}</div>;
+  }
+
+  if (availabilityState.status === "loading" || availability === null) {
+    return <div className="p-4 pb-20 md:pb-4 text-gray-600">Ładowanie dostępności...</div>;
+  }
+
+  const { periodLabel, deadlineDate: deadlineDateString } = availabilityState.data;
+  const deadlineDate = new Date(deadlineDateString);
   const deadlinePassed = Date.now() > deadlineDate.getTime();
 
   const statusColors: Record<AvailabilityStatus, string> = {
@@ -107,13 +110,14 @@ export function MyAvailability() {
     setSaveFeedbackVisible(false);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (deadlinePassed || !hasPendingChanges) return;
 
-    setAvailability((prev) => ({
-      ...prev,
+    const savedAvailability = await availabilityService.saveMyAvailability({
+      ...availability,
       ...pendingChanges,
-    }));
+    });
+    setAvailability(savedAvailability);
     setPendingChanges({});
     setSaveFeedbackVisible(true);
   };
@@ -123,7 +127,7 @@ export function MyAvailability() {
       <div className="mx-auto max-w-4xl">
         <div className="mb-6">
           <h2 className="text-2xl font-semibold text-gray-900">Moja dostępność</h2>
-          <p className="mt-1 text-gray-600">Maj 2026</p>
+          <p className="mt-1 text-gray-600">{periodLabel}</p>
         </div>
 
         {deadlinePassed ? (

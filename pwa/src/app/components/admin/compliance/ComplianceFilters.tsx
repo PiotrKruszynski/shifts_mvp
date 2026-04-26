@@ -1,5 +1,5 @@
 import { Calendar } from "lucide-react";
-import type { AuditCategory, AuditSeverity } from "../../../../fixtures/audit.fixture";
+import type { AuditCategory, AuditSeverity } from "../../../../services/auditService";
 
 export type AuditCategoryFilter = AuditCategory | "all";
 export type AuditSeverityFilter = AuditSeverity | "all";

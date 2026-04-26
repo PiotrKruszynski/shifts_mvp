@@ -1,13 +1,10 @@
 import { RefreshCw } from "lucide-react";
-import type {
-  SwapDoctorOptionFixture,
-  SwapShiftOptionFixture,
-} from "../../../../fixtures/swaps.fixture";
+import type { SwapDoctorOption, SwapShiftOption } from "../../../../services/swapRequestService";
 
 interface SwapSummaryStepProps {
-  myShift: SwapShiftOptionFixture;
-  doctor: SwapDoctorOptionFixture;
-  theirShift: SwapShiftOptionFixture;
+  myShift: SwapShiftOption;
+  doctor: SwapDoctorOption;
+  theirShift: SwapShiftOption;
   onBack: () => void;
   onSubmit: () => void;
 }

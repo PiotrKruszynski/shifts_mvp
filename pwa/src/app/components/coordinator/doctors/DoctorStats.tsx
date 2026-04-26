@@ -1,8 +1,8 @@
 import { CheckCircle, Mail, Users } from "lucide-react";
-import type { DoctorDirectoryFixture } from "../../../../fixtures/users.fixture";
+import type { DoctorDirectoryEntry } from "../../../../services/doctorService";
 
 interface DoctorStatsProps {
-  doctors: DoctorDirectoryFixture[];
+  doctors: DoctorDirectoryEntry[];
 }
 
 export function DoctorStats({ doctors }: DoctorStatsProps) {

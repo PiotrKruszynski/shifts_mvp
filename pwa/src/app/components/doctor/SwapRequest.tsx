@@ -1,14 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AlertCircle, ArrowLeft, Calendar, CheckCircle2, RefreshCw } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router";
-import {
-  doctorCurrentScheduleFixture,
-  doctorSwapFlowEnabledFixture,
-} from "../../../fixtures/schedules.fixture";
-import {
-  mySwapShiftOptionsFixture,
-  swapDoctorOptionsFixture,
-} from "../../../fixtures/swaps.fixture";
+import { useAsyncResource } from "../../hooks/useAsyncResource";
+import { swapRequestService } from "../../../services/swapRequestService";
 import { DoctorShiftStep } from "./swap-request/DoctorShiftStep";
 import { OwnShiftStep } from "./swap-request/OwnShiftStep";
 import { SwapStepProgress } from "./swap-request/SwapStepProgress";
@@ -23,19 +17,32 @@ export function SwapRequest() {
   const navigate = useNavigate();
   const location = useLocation();
   const locationState = (location.state as SwapRequestLocationState | null) ?? null;
+  const formState = useAsyncResource(() => swapRequestService.getDoctorSwapFormData(), []);
 
-  const initialShiftId =
-    locationState?.selectedShiftId &&
-    mySwapShiftOptionsFixture.some((shift) => shift.shift.id === locationState.selectedShiftId)
-      ? locationState.selectedShiftId
-      : null;
-
-  const [step, setStep] = useState(initialShiftId ? 2 : 1);
-  const [selectedMyShift, setSelectedMyShift] = useState<string | null>(initialShiftId);
+  const [step, setStep] = useState(1);
+  const [selectedMyShift, setSelectedMyShift] = useState<string | null>(null);
   const [selectedDoctor, setSelectedDoctor] = useState<string | null>(null);
   const [selectedTheirShift, setSelectedTheirShift] = useState<string | null>(null);
 
-  const handleSubmit = () => {
+  useEffect(() => {
+    if (formState.status !== "success" || selectedMyShift !== null || !locationState?.selectedShiftId) {
+      return;
+    }
+
+    const initialShiftId = formState.data.myShifts.some(
+      (shift) => shift.shift.id === locationState.selectedShiftId,
+    )
+      ? locationState.selectedShiftId
+      : null;
+
+    if (initialShiftId) {
+      setSelectedMyShift(initialShiftId);
+      setStep(2);
+    }
+  }, [formState, locationState, selectedMyShift]);
+
+  const handleSubmit = async () => {
+    await swapRequestService.createSwapRequest();
     navigate("/doctor");
   };
 
@@ -43,11 +50,20 @@ export function SwapRequest() {
     navigate(locationState?.from ?? "/doctor/schedule");
   };
 
-  const myShift = mySwapShiftOptionsFixture.find((shift) => shift.shift.id === selectedMyShift);
-  const doctor = swapDoctorOptionsFixture.find((item) => item.id === selectedDoctor);
+  if (formState.status === "loading") {
+    return <div className="p-4 pb-20 md:pb-4 text-gray-600">Ładowanie formularza zamiany...</div>;
+  }
+
+  if (formState.status === "error") {
+    return <div className="p-4 pb-20 md:pb-4 text-red-700">{formState.error}</div>;
+  }
+
+  const { myShifts, doctors, enabled, scheduleStatus } = formState.data;
+  const myShift = myShifts.find((shift) => shift.shift.id === selectedMyShift);
+  const doctor = doctors.find((item) => item.id === selectedDoctor);
   const theirShift = doctor?.shifts.find((shift) => shift.shift.id === selectedTheirShift);
 
-  if (!doctorSwapFlowEnabledFixture || doctorCurrentScheduleFixture.status !== "PUBLISHED") {
+  if (!enabled || scheduleStatus !== "PUBLISHED") {
     return (
       <div className="p-4 pb-20 md:pb-4">
         <div className="mx-auto max-w-3xl rounded-2xl border border-amber-200 bg-white p-6 shadow-sm">
@@ -108,7 +124,7 @@ export function SwapRequest() {
 
         <SwapStepProgress step={step} />
 
-        {mySwapShiftOptionsFixture.length === 0 ? (
+        {myShifts.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-6 text-center">
             <h3 className="text-lg font-semibold text-gray-900">Brak dyżurów do zamiany</h3>
             <p className="mt-2 text-sm text-gray-600">
@@ -127,7 +143,7 @@ export function SwapRequest() {
           <>
             {step === 1 && (
               <OwnShiftStep
-                shifts={mySwapShiftOptionsFixture}
+                shifts={myShifts}
                 selectedShiftId={selectedMyShift}
                 onSelectShift={(shiftId) => {
                   setSelectedMyShift(shiftId);
@@ -141,7 +157,7 @@ export function SwapRequest() {
 
             {step === 2 && (
               <DoctorShiftStep
-                doctors={swapDoctorOptionsFixture}
+                doctors={doctors}
                 selectedShiftId={selectedTheirShift}
                 onSelectShift={(doctorId, shiftId) => {
                   setSelectedDoctor(doctorId);
@@ -162,7 +178,7 @@ export function SwapRequest() {
               />
             ) : null}
 
-            {step === 2 && swapDoctorOptionsFixture.length > 0 && (
+            {step === 2 && doctors.length > 0 && (
               <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-4">
                 <div className="flex items-start gap-3">
                   <CheckCircle2 className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600" />

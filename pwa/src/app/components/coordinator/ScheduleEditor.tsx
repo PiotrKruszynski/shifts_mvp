@@ -1,10 +1,7 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router";
-import {
-  currentScheduleFixture,
-  generatedScheduleConflictItemsFixture,
-  generatedScheduleShiftsFixture,
-} from "../../../fixtures/schedules.fixture";
+import { useAsyncResource } from "../../hooks/useAsyncResource";
+import { scheduleService, scheduleStatusLabels } from "../../../services/scheduleService";
 import { ScheduleStatusBadge } from "../shared/ScheduleStatusBadge";
 import { PublishScheduleDialog } from "./schedule-editor/PublishScheduleDialog";
 import { ScheduleSummaryCards } from "./schedule-editor/ScheduleSummaryCards";
@@ -14,7 +11,18 @@ import { ShiftGrid } from "./schedule-editor/ShiftGrid";
 export function ScheduleEditor() {
   const { id } = useParams();
   const [showPublish, setShowPublish] = useState(false);
-  const allValid = generatedScheduleShiftsFixture.every((shift) => shift.valid);
+  const editorState = useAsyncResource(() => scheduleService.getScheduleEditorData(id), [id]);
+
+  if (editorState.status === "loading") {
+    return <div className="p-8 text-gray-600">Ładowanie edytora grafiku...</div>;
+  }
+
+  if (editorState.status === "error") {
+    return <div className="p-8 text-red-700">{editorState.error}</div>;
+  }
+
+  const editorData = editorState.data;
+  const allValid = editorData.shifts.every((shift) => shift.valid);
 
   return (
     <div className="p-8">
@@ -27,14 +35,16 @@ export function ScheduleEditor() {
       <div className="flex items-start justify-between mb-6">
         <div>
           <h1 className="text-3xl font-semibold text-gray-900">Edytor grafiku</h1>
-          <p className="text-gray-600 mt-2">Maj 2026 (01.05.2026 - 31.05.2026)</p>
+          <p className="text-gray-600 mt-2">
+            {editorData.periodLabel} ({editorData.dateRangeLabel})
+          </p>
         </div>
-        <ScheduleStatusBadge status={currentScheduleFixture.status === "GENERATED" ? "Wygenerowany" : "Szkic"} />
+        <ScheduleStatusBadge status={scheduleStatusLabels[editorData.schedule.status]} />
       </div>
 
-      <ScheduleSummaryCards shifts={generatedScheduleShiftsFixture} />
-      <ShiftGrid shifts={generatedScheduleShiftsFixture} />
-      <ScheduleValidationPanel conflicts={generatedScheduleConflictItemsFixture} />
+      <ScheduleSummaryCards shifts={editorData.shifts} />
+      <ShiftGrid shifts={editorData.shifts} />
+      <ScheduleValidationPanel conflicts={editorData.conflicts} />
 
       <div className="flex gap-3">
         <button

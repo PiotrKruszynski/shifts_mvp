@@ -1,53 +1,28 @@
 import { useState } from "react";
 import { Building2, Plus, User, History } from "lucide-react";
-
-interface Department {
-  id: string;
-  name: string;
-  coordinator: string | null;
-  coordinatorEmail: string | null;
-  doctorsCount: number;
-  activeSchedules: number;
-  assignedAt?: string;
-}
+import { useAsyncResource } from "../../hooks/useAsyncResource";
+import { departmentService } from "../../../services/departmentService";
 
 export function Departments() {
   const [showAddDepartment, setShowAddDepartment] = useState(false);
   const [showAssignCoordinator, setShowAssignCoordinator] = useState<string | null>(null);
+  const departmentsState = useAsyncResource(
+    async () => ({
+      departments: await departmentService.listDepartmentCoordinatorSummaries(),
+      availableCoordinators: await departmentService.listAvailableCoordinators(),
+    }),
+    [],
+  );
 
-  const departments: Department[] = [
-    {
-      id: "1",
-      name: "Oddział Chirurgii",
-      coordinator: "Jan Kowalski",
-      coordinatorEmail: "j.kowalski@hospital.pl",
-      doctorsCount: 24,
-      activeSchedules: 2,
-      assignedAt: "2026-01-15",
-    },
-    {
-      id: "2",
-      name: "Oddział Kardiologii",
-      coordinator: null,
-      coordinatorEmail: null,
-      doctorsCount: 18,
-      activeSchedules: 0,
-    },
-    {
-      id: "3",
-      name: "Oddział Neurologii",
-      coordinator: "Maria Nowak",
-      coordinatorEmail: "m.nowak@hospital.pl",
-      doctorsCount: 15,
-      activeSchedules: 1,
-      assignedAt: "2026-02-10",
-    },
-  ];
+  if (departmentsState.status === "loading") {
+    return <div className="p-4 md:p-8 text-gray-600">Ładowanie oddziałów...</div>;
+  }
 
-  const availableCoordinators = [
-    { id: "1", name: "Piotr Wiśniewski", email: "p.wisniewski@hospital.pl" },
-    { id: "2", name: "Anna Kowalczyk", email: "a.kowalczyk@hospital.pl" },
-  ];
+  if (departmentsState.status === "error") {
+    return <div className="p-4 md:p-8 text-red-700">{departmentsState.error}</div>;
+  }
+
+  const { departments, availableCoordinators } = departmentsState.data;
 
   return (
     <div className="p-4 md:p-8">

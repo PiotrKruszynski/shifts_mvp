@@ -1,8 +1,8 @@
 import { AlertCircle, CheckCircle, Shield } from "lucide-react";
-import type { ComplianceAuditEventFixture } from "../../../../fixtures/audit.fixture";
+import type { ComplianceAuditEvent } from "../../../../services/auditService";
 
 interface ComplianceStatsProps {
-  events: ComplianceAuditEventFixture[];
+  events: ComplianceAuditEvent[];
 }
 
 export function ComplianceStats({ events }: ComplianceStatsProps) {

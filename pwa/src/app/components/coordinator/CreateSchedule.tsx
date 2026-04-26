@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { Calendar, Users } from "lucide-react";
+import { scheduleService } from "../../../services/scheduleService";
 
 export function CreateSchedule() {
   const navigate = useNavigate();
@@ -29,9 +30,13 @@ export function CreateSchedule() {
 
   const upcomingMonths = generateUpcomingMonths();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    navigate("/coordinator/schedules/1/availability");
+    const schedule = await scheduleService.createMonthlySchedule({
+      month: formData.month,
+      availabilityDeadline: formData.deadline,
+    });
+    navigate(`/coordinator/schedules/${schedule.id}/availability`);
   };
 
   return (

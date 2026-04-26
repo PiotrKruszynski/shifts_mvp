@@ -1,8 +1,14 @@
+import { useState } from "react";
+import { userService } from "../../../../services/userService";
+
 interface AddUserDialogProps {
   onClose: () => void;
 }
 
 export function AddUserDialog({ onClose }: AddUserDialogProps) {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div
@@ -21,8 +27,14 @@ export function AddUserDialog({ onClose }: AddUserDialogProps) {
 
         <form
           className="space-y-4"
-          onSubmit={(event) => {
+          onSubmit={async (event) => {
             event.preventDefault();
+            const [firstName = "", ...lastNameParts] = name.trim().split(/\s+/);
+            await userService.inviteUser({
+              email,
+              firstName,
+              lastName: lastNameParts.join(" "),
+            });
             onClose();
           }}
         >
@@ -33,8 +45,11 @@ export function AddUserDialog({ onClose }: AddUserDialogProps) {
             <input
               id="new-user-name"
               type="text"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
               className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
               placeholder="Jan Kowalski"
+              required
             />
           </div>
 
@@ -45,8 +60,11 @@ export function AddUserDialog({ onClose }: AddUserDialogProps) {
             <input
               id="new-user-email"
               type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
               className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
               placeholder="j.kowalski@hospital.pl"
+              required
             />
           </div>
 

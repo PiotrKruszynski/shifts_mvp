@@ -1,5 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { RefreshCw, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { useAsyncResource } from "../../hooks/useAsyncResource";
+import {
+  swapRequestService,
+  type CoordinatorSwapApprovalItem,
+} from "../../../services/swapRequestService";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,78 +16,45 @@ import {
   AlertDialogTitle,
 } from "../ui/alert-dialog";
 
-interface SwapRequest {
-  id: string;
-  doctorA: string;
-  doctorB: string;
-  shiftA: string;
-  shiftB: string;
-  status: "Pending" | "Approved" | "Rejected";
-  valid: boolean;
-  issues: string[];
-  requestedAt: string;
-}
-
 export function SwapApprovals() {
-  const [requests, setRequests] = useState<SwapRequest[]>([
-    {
-      id: "1",
-      doctorA: "Dr Anna Kowalska",
-      doctorB: "Dr Jan Nowak",
-      shiftA: "15.05.2026 (Środa)",
-      shiftB: "18.05.2026 (Sobota)",
-      status: "Pending",
-      valid: true,
-      issues: [],
-      requestedAt: "2026-04-23",
-    },
-    {
-      id: "2",
-      doctorA: "Dr Maria Wiśniewska",
-      doctorB: "Dr Piotr Zieliński",
-      shiftA: "10.05.2026 (Piątek)",
-      shiftB: "12.05.2026 (Niedziela)",
-      status: "Pending",
-      valid: false,
-      issues: ["Naruszenie odpoczynku 11h dla Dr Piotr Zieliński"],
-      requestedAt: "2026-04-22",
-    },
-    {
-      id: "3",
-      doctorA: "Dr Katarzyna Lewandowska",
-      doctorB: "Dr Tomasz Kamiński",
-      shiftA: "20.05.2026 (Poniedziałek)",
-      shiftB: "22.05.2026 (Środa)",
-      status: "Pending",
-      valid: true,
-      issues: [],
-      requestedAt: "2026-04-21",
-    },
-  ]);
-
-  const [selectedRequest, setSelectedRequest] = useState<SwapRequest | null>(null);
+  const requestsState = useAsyncResource(() => swapRequestService.listCoordinatorSwapApprovals(), []);
+  const [requests, setRequests] = useState<CoordinatorSwapApprovalItem[] | null>(null);
+  const [selectedRequest, setSelectedRequest] = useState<CoordinatorSwapApprovalItem | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [modalAction, setModalAction] = useState<"approve" | "reject">("approve");
 
-  const handleAction = (request: SwapRequest, action: "approve" | "reject") => {
+  useEffect(() => {
+    if (requestsState.status === "success" && requests === null) {
+      setRequests(requestsState.data);
+    }
+  }, [requestsState, requests]);
+
+  const handleAction = (request: CoordinatorSwapApprovalItem, action: "approve" | "reject") => {
     setSelectedRequest(request);
     setModalAction(action);
     setShowModal(true);
   };
 
-  const confirmAction = () => {
-    if (selectedRequest) {
-      setRequests(
-        requests.map((r) =>
-          r.id === selectedRequest.id
-            ? { ...r, status: modalAction === "approve" ? "Approved" : "Rejected" }
-            : r
-        )
+  const confirmAction = async () => {
+    if (selectedRequest && requests) {
+      const updatedRequests = await swapRequestService.decideCoordinatorSwap(
+        requests,
+        selectedRequest.id,
+        modalAction,
       );
+      setRequests(updatedRequests);
     }
     setShowModal(false);
     setSelectedRequest(null);
   };
+
+  if (requestsState.status === "error") {
+    return <div className="p-8 text-red-700">{requestsState.error}</div>;
+  }
+
+  if (requestsState.status === "loading" || requests === null) {
+    return <div className="p-8 text-gray-600">Ładowanie zamian...</div>;
+  }
 
   const pendingRequests = requests.filter((r) => r.status === "Pending");
 

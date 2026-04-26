@@ -2,8 +2,8 @@ import { Shield } from "lucide-react";
 import type {
   AuditCategory,
   AuditSeverity,
-  ComplianceAuditEventFixture,
-} from "../../../../fixtures/audit.fixture";
+  ComplianceAuditEvent,
+} from "../../../../services/auditService";
 
 const severityColors: Record<AuditSeverity, string> = {
   Info: "bg-blue-100 text-blue-800 border-blue-300",
@@ -23,7 +23,7 @@ function formatAuditTimestamp(timestamp: string) {
 }
 
 interface ComplianceEventListProps {
-  events: ComplianceAuditEventFixture[];
+  events: ComplianceAuditEvent[];
 }
 
 export function ComplianceEventList({ events }: ComplianceEventListProps) {

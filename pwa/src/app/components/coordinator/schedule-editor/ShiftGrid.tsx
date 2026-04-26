@@ -1,8 +1,8 @@
 import { AlertCircle, Download, Save } from "lucide-react";
-import type { ScheduleEditorShiftFixture } from "../../../../fixtures/schedules.fixture";
+import type { ScheduleEditorShift } from "../../../../services/scheduleService";
 
 interface ShiftGridProps {
-  shifts: ScheduleEditorShiftFixture[];
+  shifts: ScheduleEditorShift[];
 }
 
 export function ShiftGrid({ shifts }: ShiftGridProps) {

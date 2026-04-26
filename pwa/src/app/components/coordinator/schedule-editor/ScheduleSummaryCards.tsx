@@ -1,8 +1,8 @@
 import { AlertCircle, CheckCircle } from "lucide-react";
-import type { ScheduleEditorShiftFixture } from "../../../../fixtures/schedules.fixture";
+import type { ScheduleEditorShift } from "../../../../services/scheduleService";
 
 interface ScheduleSummaryCardsProps {
-  shifts: ScheduleEditorShiftFixture[];
+  shifts: ScheduleEditorShift[];
 }
 
 export function ScheduleSummaryCards({ shifts }: ScheduleSummaryCardsProps) {

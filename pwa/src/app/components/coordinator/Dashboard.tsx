@@ -1,18 +1,22 @@
 import { Link } from "react-router";
 import { Calendar, AlertCircle, Clock, RefreshCw, TrendingUp, CheckCircle } from "lucide-react";
+import { useAsyncResource } from "../../hooks/useAsyncResource";
+import { scheduleService } from "../../../services/scheduleService";
 import { ScheduleStatusBadge } from "../shared/ScheduleStatusBadge";
 import { MetricCard } from "../shared/MetricCard";
 
 export function Dashboard() {
-  const currentSchedule = {
-    id: "1",
-    period: "Maj 2026",
-    status: "Wygenerowany" as const,
-    deadline: "2026-04-28",
-    unassignedShifts: 3,
-    conflicts: 2,
-    pendingSwaps: 5,
-  };
+  const scheduleState = useAsyncResource(() => scheduleService.getCoordinatorDashboardSchedule(), []);
+
+  if (scheduleState.status === "loading") {
+    return <div className="p-4 md:p-8 text-gray-600">Ładowanie pulpitu...</div>;
+  }
+
+  if (scheduleState.status === "error") {
+    return <div className="p-4 md:p-8 text-red-700">{scheduleState.error}</div>;
+  }
+
+  const currentSchedule = scheduleState.data;
 
   const upcomingDeadline = new Date(currentSchedule.deadline).getTime() - Date.now();
   const daysUntilDeadline = Math.ceil(upcomingDeadline / (1000 * 60 * 60 * 24));
@@ -75,8 +79,8 @@ export function Dashboard() {
 
         <MetricCard
           title="Lekarze w grafiku"
-          value="24"
-          subtitle="23 aktywnych, 1 zaproszony"
+          value={currentSchedule.doctors.toString()}
+          subtitle={`${currentSchedule.activeDoctors} aktywnych, ${currentSchedule.invitedDoctors} zaproszony`}
           icon={CheckCircle}
           variant="normal"
         />
@@ -91,7 +95,7 @@ export function Dashboard() {
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <h3 className="font-medium text-gray-900">{currentSchedule.period}</h3>
-                  <p className="text-sm text-gray-600 mt-1">01.05.2026 - 31.05.2026</p>
+                  <p className="text-sm text-gray-600 mt-1">{currentSchedule.dateRange}</p>
                 </div>
                 <ScheduleStatusBadge status={currentSchedule.status} />
               </div>
@@ -99,11 +103,11 @@ export function Dashboard() {
               <div className="flex gap-4 text-sm mb-4">
                 <div>
                   <span className="text-gray-600">Lekarze:</span>
-                  <span className="ml-1 font-medium text-gray-900">24</span>
+                  <span className="ml-1 font-medium text-gray-900">{currentSchedule.doctors}</span>
                 </div>
                 <div>
                   <span className="text-gray-600">Dyżury:</span>
-                  <span className="ml-1 font-medium text-gray-900">31</span>
+                  <span className="ml-1 font-medium text-gray-900">{currentSchedule.shifts}</span>
                 </div>
               </div>
 
@@ -178,7 +182,7 @@ export function Dashboard() {
               <div>
                 <p className="text-sm font-medium text-green-900">Wysoka frekwencja zgłoszeń</p>
                 <p className="text-sm text-green-700 mt-1">
-                  21 z 24 lekarzy uzupełniło dostępność
+                  {currentSchedule.availabilitySubmitted} z {currentSchedule.doctors} lekarzy uzupełniło dostępność
                 </p>
               </div>
             </div>

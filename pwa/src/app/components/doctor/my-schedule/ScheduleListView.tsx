@@ -1,8 +1,8 @@
-import type { DoctorScheduleShiftFixture } from "../../../../fixtures/schedules.fixture";
+import type { DoctorScheduleShift } from "../../../../services/scheduleService";
 import { ShiftCard } from "./ShiftCard";
 
 interface ScheduleListViewProps {
-  shifts: DoctorScheduleShiftFixture[];
+  shifts: DoctorScheduleShift[];
 }
 
 export function ScheduleListView({ shifts }: ScheduleListViewProps) {

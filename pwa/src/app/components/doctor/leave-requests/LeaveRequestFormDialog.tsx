@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { leaveRequestService } from "../../../../services/leaveRequestService";
 
 interface LeaveRequestFormDialogProps {
   onClose: () => void;
@@ -12,8 +13,14 @@ export function LeaveRequestFormDialog({ onClose }: LeaveRequestFormDialogProps)
     comment: "",
   });
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    await leaveRequestService.createDoctorLeaveRequest({
+      startDate: formData.startDate,
+      endDate: formData.endDate,
+      typeLabel: formData.type,
+      comment: formData.comment,
+    });
     setFormData({ startDate: "", endDate: "", type: "Urlop wypoczynkowy", comment: "" });
     onClose();
   };

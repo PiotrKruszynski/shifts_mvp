@@ -1,22 +1,17 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { Lock, Mail, Calendar } from "lucide-react";
+import { authService } from "../../../services/authService";
 
 export function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock login - redirect based on email
-    if (email.includes("coordinator")) {
-      navigate("/coordinator");
-    } else if (email.includes("admin")) {
-      navigate("/admin");
-    } else {
-      navigate("/doctor");
-    }
+    const session = await authService.login({ email, password });
+    navigate(session.redirectPath);
   };
 
   return (

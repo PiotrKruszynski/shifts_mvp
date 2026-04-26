@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CheckCircle, Clock, FileText, XCircle } from "lucide-react";
-import type { LeaveRequestStatus } from "../../../domain/types";
+import { useAsyncResource } from "../../hooks/useAsyncResource";
 import {
-  leaveRequestsFixture,
-  type LeaveRequestFixture,
-} from "../../../fixtures/leave-requests.fixture";
+  leaveRequestService,
+  type LeaveRequestListItem,
+} from "../../../services/leaveRequestService";
 
 function leaveRequestDayCount(dateFrom: string, dateTo: string) {
   return (
@@ -15,33 +15,47 @@ function leaveRequestDayCount(dateFrom: string, dateTo: string) {
 }
 
 export function LeaveRequests() {
-  const [requests, setRequests] = useState<LeaveRequestFixture[]>(leaveRequestsFixture);
+  const requestsState = useAsyncResource(() => leaveRequestService.listCoordinatorLeaveRequests(), []);
+  const [requests, setRequests] = useState<LeaveRequestListItem[] | null>(null);
   const [showModal, setShowModal] = useState(false);
-  const [selectedRequest, setSelectedRequest] = useState<LeaveRequestFixture | null>(null);
+  const [selectedRequest, setSelectedRequest] = useState<LeaveRequestListItem | null>(null);
   const [modalAction, setModalAction] = useState<"approve" | "reject">("approve");
   const [rejectionReason, setRejectionReason] = useState("");
 
-  const handleAction = (request: LeaveRequestFixture, action: "approve" | "reject") => {
+  useEffect(() => {
+    if (requestsState.status === "success" && requests === null) {
+      setRequests(requestsState.data);
+    }
+  }, [requestsState, requests]);
+
+  const handleAction = (request: LeaveRequestListItem, action: "approve" | "reject") => {
     setSelectedRequest(request);
     setModalAction(action);
     setRejectionReason("");
     setShowModal(true);
   };
 
-  const confirmAction = () => {
-    if (selectedRequest) {
-      const nextStatus: LeaveRequestStatus = modalAction === "approve" ? "APPROVED" : "REJECTED";
-      setRequests(
-        requests.map((item) =>
-          item.request.id === selectedRequest.request.id
-            ? { ...item, request: { ...item.request, status: nextStatus } }
-            : item,
-        ),
+  const confirmAction = async () => {
+    if (selectedRequest && requests) {
+      const updatedRequests = await leaveRequestService.decideLeaveRequest(
+        requests,
+        selectedRequest.request.id,
+        modalAction,
+        rejectionReason,
       );
+      setRequests(updatedRequests);
     }
     setShowModal(false);
     setSelectedRequest(null);
   };
+
+  if (requestsState.status === "error") {
+    return <div className="p-8 text-red-700">{requestsState.error}</div>;
+  }
+
+  if (requestsState.status === "loading" || requests === null) {
+    return <div className="p-8 text-gray-600">Ładowanie wniosków urlopowych...</div>;
+  }
 
   const pendingRequests = requests.filter(({ request }) => request.status === "SUBMITTED");
   const approvedRequests = requests.filter(({ request }) => request.status === "APPROVED");

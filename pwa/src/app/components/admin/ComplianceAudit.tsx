@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Download, Shield } from "lucide-react";
-import { complianceAuditEventsFixture } from "../../../fixtures/audit.fixture";
+import { useAsyncResource } from "../../hooks/useAsyncResource";
+import { auditService } from "../../../services/auditService";
 import {
   ComplianceFilters,
   type AuditCategoryFilter,
@@ -12,8 +13,18 @@ import { ComplianceStats } from "./compliance/ComplianceStats";
 export function ComplianceAudit() {
   const [filterCategory, setFilterCategory] = useState<AuditCategoryFilter>("all");
   const [filterSeverity, setFilterSeverity] = useState<AuditSeverityFilter>("all");
+  const auditState = useAsyncResource(() => auditService.listComplianceAuditEvents(), []);
 
-  const filteredEvents = complianceAuditEventsFixture.filter((event) => {
+  if (auditState.status === "loading") {
+    return <div className="p-4 md:p-8 text-gray-600">Ładowanie logów audytowych...</div>;
+  }
+
+  if (auditState.status === "error") {
+    return <div className="p-4 md:p-8 text-red-700">{auditState.error}</div>;
+  }
+
+  const events = auditState.data;
+  const filteredEvents = events.filter((event) => {
     if (filterCategory !== "all" && event.category !== filterCategory) return false;
     if (filterSeverity !== "all" && event.severity !== filterSeverity) return false;
     return true;
@@ -34,7 +45,7 @@ export function ComplianceAudit() {
         </button>
       </div>
 
-      <ComplianceStats events={complianceAuditEventsFixture} />
+      <ComplianceStats events={events} />
       <ComplianceFilters
         filterCategory={filterCategory}
         filterSeverity={filterSeverity}

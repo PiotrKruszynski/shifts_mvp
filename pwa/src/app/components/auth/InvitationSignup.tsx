@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { Mail, Lock, User, Calendar } from "lucide-react";
+import { authService } from "../../../services/authService";
 
 export function InvitationSignup() {
   const navigate = useNavigate();
@@ -13,9 +14,10 @@ export function InvitationSignup() {
     confirmPassword: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    navigate("/doctor");
+    const session = await authService.completeInvitationSignup(formData);
+    navigate(session.redirectPath);
   };
 
   return (

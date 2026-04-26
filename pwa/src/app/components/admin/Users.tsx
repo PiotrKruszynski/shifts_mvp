@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { UserPlus } from "lucide-react";
-import { adminUsersFixture } from "../../../fixtures/users.fixture";
+import { useAsyncResource } from "../../hooks/useAsyncResource";
+import { userService } from "../../../services/userService";
 import { AddUserDialog } from "./users/AddUserDialog";
 import { UserFilters, type UserRoleFilter, type UserStatusFilter } from "./users/UserFilters";
 import { UserStats } from "./users/UserStats";
@@ -11,8 +12,18 @@ export function Users() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterRole, setFilterRole] = useState<UserRoleFilter>("all");
   const [filterStatus, setFilterStatus] = useState<UserStatusFilter>("all");
+  const usersState = useAsyncResource(() => userService.listAdminUsers(), []);
 
-  const filteredUsers = adminUsersFixture.filter(({ user, primaryRole }) => {
+  if (usersState.status === "loading") {
+    return <div className="p-4 md:p-8 text-gray-600">Ładowanie użytkowników...</div>;
+  }
+
+  if (usersState.status === "error") {
+    return <div className="p-4 md:p-8 text-red-700">{usersState.error}</div>;
+  }
+
+  const users = usersState.data;
+  const filteredUsers = users.filter(({ user, primaryRole }) => {
     if (filterRole !== "all" && primaryRole !== filterRole) return false;
     if (filterStatus !== "all" && user.status !== filterStatus) return false;
     if (searchQuery.trim()) {
@@ -44,7 +55,7 @@ export function Users() {
         </button>
       </div>
 
-      <UserStats users={adminUsersFixture} />
+      <UserStats users={users} />
       <UserFilters
         searchQuery={searchQuery}
         filterRole={filterRole}

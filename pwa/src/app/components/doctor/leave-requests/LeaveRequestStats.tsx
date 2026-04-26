@@ -1,8 +1,8 @@
 import { Calendar, CheckCircle, Clock } from "lucide-react";
-import type { LeaveRequestFixture } from "../../../../fixtures/leave-requests.fixture";
+import type { LeaveRequestListItem } from "../../../../services/leaveRequestService";
 
 interface LeaveRequestStatsProps {
-  requests: LeaveRequestFixture[];
+  requests: LeaveRequestListItem[];
 }
 
 export function LeaveRequestStats({ requests }: LeaveRequestStatsProps) {

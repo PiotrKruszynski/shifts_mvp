@@ -1,15 +1,29 @@
 import { BarChart3, TrendingUp, Download } from "lucide-react";
+import { useAsyncResource } from "../../hooks/useAsyncResource";
+import { metricsService } from "../../../services/metricsService";
 
 export function Metrics() {
-  const doctorMetrics = [
-    { name: "Dr Anna Kowalska", weekdayShifts: 5, weekendShifts: 2, holidayShifts: 1, totalHours: 192 },
-    { name: "Dr Jan Nowak", weekdayShifts: 4, weekendShifts: 2, holidayShifts: 1, totalHours: 168 },
-    { name: "Dr Maria Wiśniewska", weekdayShifts: 6, weekendShifts: 1, holidayShifts: 0, totalHours: 168 },
-    { name: "Dr Piotr Zieliński", weekdayShifts: 5, weekendShifts: 3, holidayShifts: 1, totalHours: 216 },
-    { name: "Dr Katarzyna Lewandowska", weekdayShifts: 4, weekendShifts: 2, holidayShifts: 0, totalHours: 144 },
-  ];
+  const metricsState = useAsyncResource(() => metricsService.getDoctorMetrics(), []);
 
+  if (metricsState.status === "loading") {
+    return <div className="p-8 text-gray-600">Ładowanie metryk...</div>;
+  }
+
+  if (metricsState.status === "error") {
+    return <div className="p-8 text-red-700">{metricsState.error}</div>;
+  }
+
+  const { doctorMetrics, periodLabel } = metricsState.data;
   const maxHours = Math.max(...doctorMetrics.map((d) => d.totalHours));
+  const totalShifts = doctorMetrics.reduce(
+    (sum, doctor) => sum + doctor.weekdayShifts + doctor.weekendShifts + doctor.holidayShifts,
+    0,
+  );
+  const averageShifts = doctorMetrics.length > 0 ? totalShifts / doctorMetrics.length : 0;
+  const totalHours = doctorMetrics.reduce((sum, doctor) => sum + doctor.totalHours, 0);
+  const averageHours = doctorMetrics.length > 0 ? totalHours / doctorMetrics.length : 0;
+  const weekendShifts = doctorMetrics.reduce((sum, doctor) => sum + doctor.weekendShifts, 0);
+  const holidayShifts = doctorMetrics.reduce((sum, doctor) => sum + doctor.holidayShifts, 0);
 
   return (
     <div className="p-8">
@@ -17,7 +31,7 @@ export function Metrics() {
         <div>
           <h1 className="text-3xl font-semibold text-gray-900">Raporty i metryki</h1>
           <p className="text-gray-600 mt-2">
-            Monitorowanie obciążeń i zgodności dla Maja 2026
+            Monitorowanie obciążeń i zgodności dla {periodLabel}
           </p>
         </div>
         <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium">
@@ -32,7 +46,7 @@ export function Metrics() {
             <h3 className="text-sm font-medium text-gray-600">Średnia dyżurów</h3>
             <BarChart3 className="w-5 h-5 text-blue-600" />
           </div>
-          <p className="text-3xl font-semibold text-gray-900">7.2</p>
+          <p className="text-3xl font-semibold text-gray-900">{averageShifts.toFixed(1)}</p>
           <p className="text-sm text-gray-600 mt-1">na lekarza</p>
         </div>
 
@@ -41,7 +55,7 @@ export function Metrics() {
             <h3 className="text-sm font-medium text-gray-600">Średnie godziny</h3>
             <TrendingUp className="w-5 h-5 text-green-600" />
           </div>
-          <p className="text-3xl font-semibold text-gray-900">177.6</p>
+          <p className="text-3xl font-semibold text-gray-900">{averageHours.toFixed(1)}</p>
           <p className="text-sm text-gray-600 mt-1">godz./miesiąc</p>
         </div>
 
@@ -50,7 +64,7 @@ export function Metrics() {
             <h3 className="text-sm font-medium text-gray-600">Dyżury weekendowe</h3>
             <BarChart3 className="w-5 h-5 text-purple-600" />
           </div>
-          <p className="text-3xl font-semibold text-gray-900">10</p>
+          <p className="text-3xl font-semibold text-gray-900">{weekendShifts}</p>
           <p className="text-sm text-gray-600 mt-1">w sumie</p>
         </div>
 
@@ -59,7 +73,7 @@ export function Metrics() {
             <h3 className="text-sm font-medium text-gray-600">Święta</h3>
             <BarChart3 className="w-5 h-5 text-amber-600" />
           </div>
-          <p className="text-3xl font-semibold text-gray-900">3</p>
+          <p className="text-3xl font-semibold text-gray-900">{holidayShifts}</p>
           <p className="text-sm text-gray-600 mt-1">w miesiącu</p>
         </div>
       </div>
