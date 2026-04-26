@@ -2,20 +2,46 @@
 
 Status: Living Draft
 Owner: Planning & Orchestration Agent
-Last updated: YYYY-MM-DD HH:MMZ
+Last updated: 2026-04-26 10:57Z
 
 ## Purpose
 
-Coordinate the agent family that delivers the SHIFTS_MVP doctor duty scheduling MVP. This document is intentionally short and orchestration-focused. Detailed implementation work belongs in the phase plans `01`–`07`.
+This document coordinates the agent family delivering SHIFTS_MVP.
+It defines:
+
+- source-of-truth hierarchy,
+- agent responsibilities,
+- phase sequencing,
+- worktree/branch expectations,
+- merge gates,
+- stop conditions,
+- handoff requirements.
+
+Detailed implementation belongs strictly to phase plans `01`–`07`.
 
 ## Source of truth
 
-1. `docs/architecture/project_assumptions.md` — MVP scope, roles, workflow and constraints.
-2. `docs/architecture/domain_model.md` — domain entities, states and invariants.
-3. `docs/architecture/er_diagram.md` — data relationships.
-4. `docs/architecture/user_flow.mmd` — end-to-end workflow.
-5. `docs/architecture/openapi.yaml` — API contract between `pwa/` and `api/`.
-6. `docs/adr/**` — accepted architecture decisions, including SQLite for MVP persistence.
+1. `docs/architecture/project_assumptions.md`
+2. `docs/architecture/domain_model.md`
+3. `docs/architecture/er_diagram.md`
+4. `docs/architecture/user_flow.mmd`
+5. `docs/architecture/openapi.yaml`
+6. `docs/adr/**`
+7. Current phase plan
+8. Previous phase report/handoff
+9. Repository state
+
+### Critical rule
+
+**Git state is authoritative.**
+
+- Reports are evidence, not authority.
+- If Git does not confirm completion → phase is NOT complete.
+- Work that exists only as:
+  - untracked files
+  - local changes
+  - unstashed work
+  **does not count as done.**
 
 If filenames differ from this list, agents must use the files that actually exist in the repository and record the mismatch in `docs/open_questions.md`.
 
@@ -23,71 +49,70 @@ If filenames differ from this list, agents must use the files that actually exis
 
 | Agent | Primary role | Must not do |
 |---|---|---|
-| Planning & Orchestration Agent | Own sequencing, branch/worktree setup, handoffs, merge gates and scope control. Resolve ownership, blockers and advancement decisions between agents. | Implement product code directly. |
-| Git Integrator Agent | Integrate the current integration branch into an active phase branch, preserve local phase work, resolve merge conflicts and restore worktree consistency after merge. | Introduce new product scope or perform unrelated refactors while merging. |
-| Gitkeeper Agent | Decide whether a phase is operationally closed and may advance to the next gate. For phase 02, explicitly block phase 03 until UX Gate A is legitimately open. | Wave through a phase with stale branch state, missing validation or incomplete handoff. |
+| Planning & Orchestration Agent | Own sequencing, branch/worktree setup, handoffs, merge gates and scope control. | Implement product code directly. |
 | Frontend Developer Agent | Import Figma Make React, refactor PWA, create mock services and integrate frontend with API. | Implement backend persistence or change domain scope. |
 | Backend Developer Agent | Align and implement FastAPI backend from `docs/architecture/openapi.yaml`, using SQLite per ADR. | Rewrite frontend or invent non-contract endpoints. |
 | UX Designer Agent | Review flows, usability, accessibility basics and role-specific UX. | Add product scope or rewrite architecture. |
 | QA Agent | Validate with tests, Playwright and Lighthouse; produce release-quality reports. | Silently accept failing critical flows or make unrelated rewrites. |
+| Git Integrator | Ensure branch contains current `master`, resolve merge state, eliminate untracked deliverables. | Lose, overwrite or discard local work without preserving it. |
+| Gatekeeper | Decide if phase can proceed based on Git state, validation and handoff completeness. | Allow progression when merge gate conditions are not satisfied. |
 
 ## Worktree and branch model
 
-Every agent task runs in its own `git worktree` and on its own branch. The Orchestration Agent creates worktrees, assigns tasks, reviews handoffs and merges only after the phase gate passes.
+Each phase:
 
-Branch naming convention:
+- runs in its own worktree
+- runs on its own branch
+- must be based on current `master`
 
-```text
-agent/orchestrator/<task>
-agent/frontend/<phase>-<task>
-agent/backend/<phase>-<task>
-agent/ux/<phase>-<task>
-agent/qa/<phase>-<task>
-```
+### Naming
 
-Recommended worktree convention:
+`branch: agent/<role>/<phase>-<task>`
 
-```bash
-git status --short
-git fetch --all --prune
-mkdir -p ../worktrees
-
-git worktree add ../worktrees/shifts-01-figma-import -b agent/frontend/01-figma-import main
-git worktree add ../worktrees/shifts-02-frontend-refactor -b agent/frontend/02-frontend-refactor main
-git worktree add ../worktrees/shifts-05-backend-implementation -b agent/backend/05-backend-implementation main
-git worktree add ../worktrees/shifts-07-quality-release -b agent/qa/07-quality-release main
-```
-
-If `main` is not the integration branch, the Orchestration Agent must replace it with the repository's actual integration branch.
+`worktree: ../worktrees/shifts-<phase>-<task>`
 
 ## Phase sequence
 
-| Phase | Plan | Owner agent | Output | Merge gate |
-|---|---|---|---|---|
-| 1 | `01_figma_import_plan.md` | Frontend Developer | Figma Make React code imported into `pwa/` as a controlled snapshot. | PWA renders imported UI and builds. |
-| 2 | `02_frontend_refactor_plan.md` | Frontend Developer | React structure, feature components and domain types are maintainable. | Build/typecheck pass; branch is synced with the current integration branch; Gitkeeper approves UX Gate A. |
-| UX Gate A | Orchestrator-created UX worktree | UX Designer | UX review of imported/refactored role flows. | Blocking UX issues are logged before phase 3. |
-| 3 | `03_mock_api_plan.md` | Frontend Developer | Async mock service layer replaces inline business data. | UI consumes services, not JSX-level data. |
-| 4 | `04_openapi_alignment_plan.md` | Backend Developer with Frontend review | `docs/architecture/openapi.yaml` matches MVP flows and service contracts. | Contract validates and maps to services. |
-| 5 | `05_backend_implementation_plan.md` | Backend Developer | FastAPI backend implemented with SQLite persistence. | Backend tests pass and seed/reset works. |
-| 6 | `06_frontend_backend_integration_plan.md` | Frontend Developer with Backend support | PWA services use real API while preserving optional mock mode. | Critical flows work through backend. |
-| UX Gate B | Orchestrator-created UX worktree | UX Designer | Final UX/accessibility review before QA release gate. | Blocking UX issues are assigned. |
-| 7 | `07_quality_release_plan.md` | QA Agent | Playwright, Lighthouse, test reports and release decision. | No blocking defects in critical flows. |
+| Phase | Plan | Exit condition |
+|---|---|---|
+| 01        | Figma import      | UI builds and renders       |
+| 02        | Frontend refactor | Structure + types stable    |
+| UX Gate A | UX review         | Blocking UX issues resolved |
+| 03        | Mock API          | UI uses services            |
+| 04        | OpenAPI alignment | Contract stable             |
+| 05        | Backend           | API + SQLite + tests        |
+| 06        | Integration       | UI works with real API      |
+| UX Gate B | UX review         | Final UX issues resolved    |
+| 07        | QA/Release        | GO / NO-GO decision         |
 
 ## Global rules
 
-- Do not invent product requirements.
-- Do not change files outside the assigned phase scope.
-- Do not implement backend before mock services and OpenAPI alignment are complete.
-- Figma import must not modify `api/`.
-- Backend implementation must not rewrite `pwa/`.
-- Backend persistence must follow `docs/adr/0007-use-sqlite-for-mvp-local-persistence.md` unless a newer accepted ADR supersedes it.
-- `Schedule.status` guards behavior: `DRAFT`, `GENERATED`, `PUBLISHED`, `ARCHIVED`.
-- A duty shift is 24 hours.
-- Hard legal constraints cannot be approved as violated.
-- A published schedule is immutable except through the approved shift swap process.
-- Audit log entries are append-only.
+- Do not invent requirements.
+- Do not cross phase boundaries.
+- Do not implement backend before phase 04.
+- Do not modify frontend during backend phase.
+- SQLite is required by ADR.
+- Schedule lifecycle is fixed: DRAFT → GENERATED → PUBLISHED → ARCHIVED.
+- Published schedule is immutable except through swap.
+- Swap is the only mutation after publish.
+- Audit log is append-only.
+- Shift = 24h.
+- Hard constraints cannot be violated.
 - Missing or ambiguous requirements go to `docs/open_questions.md`, not into guessed implementation.
+
+## Merge gate
+
+A phase may be merged ONLY if:
+
+- branch contains current `master`;
+- `git status` is clean;
+- no untracked deliverables exist;
+- all work is committed;
+- report is committed;
+- validation was executed after sync with `master`;
+- validation passes or failures are classified;
+- scope matches phase;
+- no ADR/architecture violations exist.
 
 ## Handoff protocol
 
@@ -96,39 +121,35 @@ Each phase must end with this section completed in the relevant phase plan:
 ```md
 ## Handoff
 - Branch/worktree:
+- Base branch:
+- Current HEAD:
+- Contains master: yes/no
 - Completed:
 - Validation:
+- Files changed:
 - Known issues:
 - Open questions:
-- Files changed:
+- Gate decision:
 - Recommended next step:
 ```
 
-The next agent starts by reading the previous handoff, checking the merge gate and confirming that its own worktree is based on the current integration branch.
-
-For phase 02 specifically:
-
-- Git Integrator Agent owns the `master` -> `agent/frontend/02-frontend-refactor` integration work and any required merge-conflict cleanup in the phase 02 worktree.
-- Gitkeeper Agent decides whether phase 02 is truly closed after that integration.
-- Phase 03 must not start until Gitkeeper records that phase 02 is operationally consistent, validated and ready for UX Gate A.
-
 ## Stop conditions
 
-The Orchestration Agent must pause or reject a merge when:
+Stop immediately if:
 
-- the agent worked outside its assigned scope;
-- the worktree is not based on the expected integration branch;
-- the phase branch still contains critical delivery artifacts as uncommitted or untracked local work when requesting advancement;
-- a merge from the current integration branch is still pending for a phase that depends on earlier merged output;
-- validation commands fail and the defect is outside the current phase scope;
-- implementation contradicts `docs/architecture/project_assumptions.md`, `docs/architecture/domain_model.md`, `docs/architecture/user_flow.mmd` or accepted ADRs;
-- a required architecture decision is missing;
-- API behavior is implemented before or against `docs/architecture/openapi.yaml`;
-- QA reports a blocking defect in schedule generation, publication, swap approval, hard-rule validation or audit logging.
+- branch is not based on `master`;
+- untracked deliverables exist;
+- validation fails and failures are not classified;
+- work crosses phase scope;
+- an architecture conflict is discovered;
+- required inputs are missing;
+- a required UX gate is skipped;
+- API is implemented before contract;
+- phase is marked complete without Git proof.
 
 ## Change log
 
 | Timestamp UTC | Agent | Change |
 |---|---|---|
-| 2026-04-26 09:09Z | Planning & Orchestration Agent | Added Git Integrator and Gitkeeper roles plus phase 02 advancement guardrails. |
+| 2026-04-26 10:57Z | Planning & Orchestration Agent | Promoted stashed master execution plan update and clarified Git-authoritative merge gates before Phase 03. |
 | YYYY-MM-DD HH:MMZ | Planning & Orchestration Agent | Initial English orchestration plan with worktree-based agent isolation. |
