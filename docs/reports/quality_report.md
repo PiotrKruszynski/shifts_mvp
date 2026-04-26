@@ -10,6 +10,20 @@ Release decision: `GO WITH KNOWN ISSUES`
 
 Phase 07 validation found no blocking defects. Backend and frontend gates pass, mock mode still builds, seeded smoke/E2E checks pass for the required MVP flows, and Lighthouse scores meet MVP thresholds. Known non-blocking UX and polish issues are tracked in `docs/reports/defect_log.md`.
 
+## Release Closeout
+
+MVP release validation completed.
+
+Release decision: `GO WITH KNOWN ISSUES`
+
+Known issues carried forward:
+
+- Technical and partly English Coordinator conflict messages.
+- Minor seed-data visual/data drift.
+- Several accessibility polish labels.
+- Vite chunk-size warning.
+- Positive swap approval smoke is blocked by seed data; backend tests cover valid approval.
+
 ## Validation Results
 
 ### Backend
