@@ -1,15 +1,22 @@
 # Frontend Refactor Report
 
-Last updated: 2026-04-26 07:41Z
+Last updated: 2026-04-26 09:11Z
 Agent: Frontend Developer Agent
 Branch: `agent/frontend/02-frontend-refactor`
 Worktree: `/Users/piotr/projects/worktrees/shifts-02-frontend-refactor`
 
 ## Status
 
-Complete.
+Complete and integrated with local `master`.
 
-Phase 02 refactored the imported Figma Make PWA into a stricter typed React project while preserving the imported role views and visual structure. Because the Phase 01 import was present only as uncommitted files in `shifts-01-figma-import`, the Phase 01 `pwa/` snapshot was copied into this Phase 02 worktree before refactoring.
+Phase 02 refactored the imported Figma Make PWA into a stricter typed React project while preserving the imported role views and visual structure. Because the Phase 01 import was present only as uncommitted files in `shifts-01-figma-import` when this phase started, the Phase 01 `pwa/` snapshot was copied into this Phase 02 worktree before refactoring. After the refactor, local `master` commit `8517c65` (`feat(pwa): import Figma Make frontend snapshot`) was merged into this branch so the final tree now contains both the committed Phase 01 import and the Phase 02 refactor.
+
+## Master Integration
+
+- Merged local `master` commit `8517c65` into `agent/frontend/02-frontend-refactor`.
+- Resolved add/add conflicts in imported `pwa/` files by keeping the Phase 02 refactored versions, because they are the typed and decomposed evolution of the same Figma snapshot.
+- Retained the updated Phase 01 documentation from `master`: `docs/execution_plans/01_figma_import_plan.md`, `docs/open_questions.md`, and `docs/reports/figma_import_inventory.md`.
+- Removed `src/app/components/TestComponent.tsx` and `src/app/components/figma/ImageWithFallback.tsx` again after the merge so the branch stays aligned with the Phase 02 cleanup outcome.
 
 ## Package Hygiene
 
@@ -99,6 +106,7 @@ Results:
 - `pnpm run typecheck`: passed with strict TypeScript.
 - `pnpm run lint`: passed with Biome.
 - `pnpm run build`: passed with Vite 6.3.5, 1,672 modules transformed.
+- The same `typecheck`, `lint`, and `build` commands were re-run after merging `master`; all passed on the integrated tree.
 - No real API calls found in `pwa/src`, `pwa/package.json`, or `pwa/vite.config.ts`.
 
 ## Phase 03 Recommendation

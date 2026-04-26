@@ -7,7 +7,7 @@ Worktree branch: `agent/frontend/02-frontend-refactor`
 Recommended worktree: `../worktrees/shifts-02-frontend-refactor`
 Depends on: `01_figma_import_plan.md`
 Next: `03_mock_api_plan.md`
-Last updated: 2026-04-26 07:41Z
+Last updated: 2026-04-26 09:11Z
 
 ## Objective
 
@@ -71,6 +71,15 @@ Execution note, 2026-04-26 07:41Z: Phase 02 was executed in
 `agent/frontend/02-frontend-refactor`. The local Phase 01 branch did not yet
 contain the imported `pwa/` snapshot in a commit, so the current Phase 01
 snapshot was copied into this worktree before refactoring.
+
+Integration note, 2026-04-26 09:11Z: current local `master` at `8517c65`
+(`feat(pwa): import Figma Make frontend snapshot`) was merged into this branch.
+Add/add conflicts across the imported `pwa/` files were resolved in favor of
+the Phase 02 refactored versions, while the updated Phase 01 documentation from
+`master` was retained. Temporary import-only files
+`pwa/src/app/components/TestComponent.tsx` and
+`pwa/src/app/components/figma/ImageWithFallback.tsx` were removed again after
+the merge because they are not part of the refactored frontend structure.
 
 ## Dynamic update protocol
 
@@ -240,17 +249,18 @@ UX Designer should review:
 ## Handoff
 
 - Branch/worktree: `agent/frontend/02-frontend-refactor` at `/Users/piotr/projects/worktrees/shifts-02-frontend-refactor`.
-- Completed: package hygiene, strict TypeScript setup, Biome lint setup, canonical frontend domain types, typed fixtures, oversized component split, cleanup of unused Figma files, and role-flow sanity check.
-- Validation: `corepack pnpm run build`, `corepack pnpm run typecheck`, and `corepack pnpm run lint` passed from `pwa/`. Vite build transformed 1,672 modules.
-- Known issues: no screenshot-level browser comparison was run; UX Gate A should perform formal visual review. Phase 01 import was copied from the prior worktree because it was not committed in the source branch at execution time.
+- Completed: package hygiene, strict TypeScript setup, Biome lint setup, canonical frontend domain types, typed fixtures, oversized component split, cleanup of unused Figma files, role-flow sanity check, and integration of local `master` commit `8517c65`.
+- Validation: after integrating `master`, `corepack pnpm run typecheck`, `corepack pnpm run lint`, and `corepack pnpm run build` all passed from `pwa/`. Vite build transformed 1,672 modules.
+- Known issues: no screenshot-level browser comparison was run; UX Gate A should perform formal visual review. The Phase 02 implementation began from a copied Phase 01 snapshot because the import was not yet committed in the source worktree at execution start, but this branch now also contains the committed Phase 01 import from `master`.
 - Open questions: none added in this phase.
 - UX Gate A readiness: ready. Review mixed PL/EN labels preserved from the Figma import and responsive behavior for doctor mobile views.
+- Files changed: `pwa/**`, `docs/reports/frontend_refactor_report.md`, `docs/reports/figma_import_inventory.md`, `docs/open_questions.md`, `docs/execution_plans/01_figma_import_plan.md`, `docs/execution_plans/02_frontend_refactor_plan.md`.
 - Recommended next step: Phase 03 mock API.
-- Files changed:
-- Recommended next step:
 
 ## Change log
 
 | Timestamp UTC | Agent | Change |
 |---|---|---|
 | YYYY-MM-DD HH:MMZ | Frontend Developer Agent | Initial English frontend refactor plan. |
+| 2026-04-26 07:41Z | Frontend Developer Agent | Recorded the completed Phase 02 refactor and validation handoff. |
+| 2026-04-26 09:11Z | Git Integrator Agent | Integrated local `master` into the Phase 02 branch, kept the refactored frontend versions for add/add conflicts, and refreshed the handoff after post-merge validation. |

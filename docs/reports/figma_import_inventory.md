@@ -1,13 +1,13 @@
 # Figma Import Inventory
 
-Last updated: 2026-04-26 06:54Z
+Last updated: 2026-04-26 07:53Z
 Agent: Frontend Developer Agent
 Branch: `agent/frontend/01-figma-import`
 Worktree: `/Users/piotr/projects/worktrees/shifts-01-figma-import`
 
 ## Status
 
-Imported and build-validated.
+Imported, build-validated, and ready to commit.
 
 The Figma Make frontend source snapshot is now present under `pwa/`. The imported app builds with Vite after one minimal runtime wiring fix: `App.tsx` now uses the shared `routes.tsx` router, and `routes.tsx` owns the existing `NotFound` fallback route.
 
@@ -91,6 +91,7 @@ Build result:
 - Vite 6.3.5 production build passed.
 - 1,638 modules transformed.
 - Output bundle generated under `pwa/dist/` during validation; the generated build artifact was not retained as source.
+- Orchestrator closeout re-ran the same validation on 2026-04-26 07:53Z after removing stale `node_modules/` and `dist/` artifacts.
 
 Notes:
 

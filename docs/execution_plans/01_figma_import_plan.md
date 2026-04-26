@@ -1,13 +1,13 @@
 # 01 — Figma Make React Import Plan
 
-Status: Blocked - Figma MCP resource bodies unavailable in Codex
+Status: Complete - Figma Make snapshot imported and builds
 Owner: Frontend Developer Agent
 Orchestrated by: Planning & Orchestration Agent
 Worktree branch: `agent/frontend/01-figma-import`
 Recommended worktree: `../worktrees/shifts-01-figma-import`
 Depends on: `master_execution_plan.md`
 Next: `02_frontend_refactor_plan.md`
-Last updated: 2026-04-25 21:39Z
+Last updated: 2026-04-26 07:53Z
 
 ## Objective
 
@@ -131,16 +131,17 @@ This is a living plan. The agent may update it during execution, but only to rec
 - [x] (2026-04-25 20:46Z) Inspect current `pwa/` structure and package manager lockfiles.
 - [x] (2026-04-25 20:46Z) Identify whether `pwa/` already has `src/app`, routing, styles or Tailwind configuration.
 - [x] (2026-04-25 20:46Z) Record existing frontend scripts from `pwa/package.json`.
+- [x] (2026-04-26 06:54Z) Re-inspect `pwa/` after the local Figma Make source snapshot was provided.
 
-Preflight result: `pwa/` is absent/empty for bootstrap purposes, no frontend lockfile was found within the inspected worktree depth, and no existing `pwa/package.json` scripts are available.
+Preflight result: `pwa/` was initially absent/empty for bootstrap purposes. On 2026-04-26, the local Figma Make snapshot was present under `pwa/` with `package.json`, Vite config, entry shell, role components, UI primitives and styles. No lockfile was provided.
 
 ### B. Figma Make source capture
 
-- [ ] (YYYY-MM-DD HH:MMZ) Use Figma MCP Server or Figma Make export to capture the generated React code.
-- [ ] (YYYY-MM-DD HH:MMZ) Confirm the generated structure includes `src/app/App.tsx`, `src/app/routes.tsx`, role folders and styles.
-- [ ] (YYYY-MM-DD HH:MMZ) Copy `src/imports/ui_spec_figma.md` into `pwa/src/imports/ui_spec_figma.md`.
-- [ ] (YYYY-MM-DD HH:MMZ) Copy `guidelines/` into `pwa/guidelines/` if present.
-- [ ] (YYYY-MM-DD HH:MMZ) Copy `ATTRIBUTIONS.md` and asset references if present.
+- [x] (2026-04-26 06:54Z) Use Figma MCP Server, Figma Make export, or provided local snapshot to capture the generated React code.
+- [x] (2026-04-26 06:54Z) Confirm the generated structure includes `src/app/App.tsx`, `src/app/routes.tsx`, role folders and styles.
+- [x] (2026-04-26 06:54Z) Copy `src/imports/ui_spec_figma.md` into `pwa/src/imports/ui_spec_figma.md`.
+- [x] (2026-04-26 06:54Z) Copy `guidelines/` into `pwa/guidelines/` if present.
+- [x] (2026-04-26 06:54Z) Copy `ATTRIBUTIONS.md` and asset references if present.
 - [x] (2026-04-25 20:46Z) If Figma MCP/export is unavailable, stop and write the missing access details to `docs/open_questions.md`.
 - [x] (2026-04-25 21:39Z) Confirm VS Code/Copilot session history contains Figma MCP source resource refs for the Make file.
 - [x] (2026-04-25 21:39Z) Stop because this Codex session cannot read complete MCP resource bodies from those refs.
@@ -149,39 +150,42 @@ Source capture result: blocked. The current Codex execution session does not exp
 
 Source capture addendum, 2026-04-25 21:39Z: VS Code/Copilot session history confirms that Figma MCP `get_design_context` returned source refs for `Q7pAncZlZf56UpeF3w1IQq`, but Codex cannot resolve those `mcp-resource://...` refs to complete file bodies in this execution session. The remote MCP endpoint requires authenticated bearer access, and the local VS Code OAuth session is protected by Keychain access unavailable non-interactively to Codex. Import remains blocked under the "do not guess missing files" rule. See OQ-005 and `docs/reports/figma_import_inventory.md`.
 
+Source capture addendum, 2026-04-26 06:54Z: a complete-enough local Figma Make source snapshot is now present in `pwa/`, including 96 source/config/support files excluding generated `node_modules/` and `dist/`. OQ-005 is resolved by using the local snapshot instead of unresolved MCP resource bodies.
+
 ### C. Controlled merge into `pwa/`
 
-- [ ] (YYYY-MM-DD HH:MMZ) Import Figma `src/app/**` into `pwa/src/app/**`.
-- [ ] (YYYY-MM-DD HH:MMZ) Import Figma `src/styles/**` into `pwa/src/styles/**`.
-- [ ] (YYYY-MM-DD HH:MMZ) Import `default_shadcn_theme.css` if the Figma UI references it.
-- [ ] (YYYY-MM-DD HH:MMZ) Reconcile `package.json` dependencies without blindly replacing existing scripts.
-- [ ] (YYYY-MM-DD HH:MMZ) Reconcile `vite.config.ts`, `postcss.config.mjs` and Tailwind-related files only when required for build/runtime.
-- [ ] (YYYY-MM-DD HH:MMZ) Preserve any existing repository-specific configuration that does not conflict with Figma UI.
-- [ ] (YYYY-MM-DD HH:MMZ) Do not create a separate `pwa/src/figma-import/` dump unless direct merge is impossible; if used, explain why in the handoff.
+- [x] (2026-04-26 06:54Z) Import Figma `src/app/**` into `pwa/src/app/**`.
+- [x] (2026-04-26 06:54Z) Import Figma `src/styles/**` into `pwa/src/styles/**`.
+- [x] (2026-04-26 06:54Z) Import `default_shadcn_theme.css` if the Figma UI references it.
+- [x] (2026-04-26 06:54Z) Reconcile `package.json` dependencies without blindly replacing existing scripts.
+- [x] (2026-04-26 06:54Z) Reconcile `vite.config.ts`, `postcss.config.mjs` and Tailwind-related files only when required for build/runtime.
+- [x] (2026-04-26 06:54Z) Preserve any existing repository-specific configuration that does not conflict with Figma UI.
+- [x] (2026-04-26 06:54Z) Do not create a separate `pwa/src/figma-import/` dump unless direct merge is impossible; if used, explain why in the handoff.
 
 ### D. Runtime wiring
 
-- [ ] (YYYY-MM-DD HH:MMZ) Verify `pwa/src/app/App.tsx` is the actual application entry point or is imported by the existing entry point.
-- [ ] (YYYY-MM-DD HH:MMZ) Verify `pwa/src/app/routes.tsx` is wired correctly, if the app uses routing.
-- [ ] (YYYY-MM-DD HH:MMZ) Provide a safe preview route or default route for the imported Figma UI.
-- [ ] (YYYY-MM-DD HH:MMZ) Keep `TestComponent.tsx` only as a temporary preview helper if required; mark it for phase 02 cleanup.
-- [ ] (YYYY-MM-DD HH:MMZ) Confirm the imported UI does not send real network requests.
+- [x] (2026-04-26 06:54Z) Verify `pwa/src/app/App.tsx` is the actual application entry point or is imported by the existing entry point.
+- [x] (2026-04-26 06:54Z) Verify `pwa/src/app/routes.tsx` is wired correctly, if the app uses routing.
+- [x] (2026-04-26 06:54Z) Provide a safe preview route or default route for the imported Figma UI.
+- [x] (2026-04-26 06:54Z) Keep `TestComponent.tsx` only as a temporary preview helper if required; mark it for phase 02 cleanup.
+- [x] (2026-04-26 06:54Z) Confirm the imported UI does not send real network requests.
 
 ### E. Minimal fixes only
 
-- [ ] (YYYY-MM-DD HH:MMZ) Fix import paths created by the move into `pwa/`.
-- [ ] (YYYY-MM-DD HH:MMZ) Fix missing CSS imports required for visual rendering.
-- [ ] (YYYY-MM-DD HH:MMZ) Fix missing package dependencies required by the generated code.
-- [ ] (YYYY-MM-DD HH:MMZ) Do not normalize domain models, service layers or component architecture in this phase.
-- [ ] (YYYY-MM-DD HH:MMZ) Keep generated local data as local/static data unless it prevents build readability.
+- [x] (2026-04-26 06:54Z) Fix import paths created by the move into `pwa/`.
+- [x] (2026-04-26 06:54Z) Fix missing CSS imports required for visual rendering.
+- [x] (2026-04-26 06:54Z) Fix missing package dependencies required by the generated code.
+- [x] (2026-04-26 06:54Z) Do not normalize domain models, service layers or component architecture in this phase.
+- [x] (2026-04-26 06:54Z) Keep generated local data as local/static data unless it prevents build readability.
 
 ### F. Import inventory
 
 - [x] (2026-04-25 21:39Z) Create or update `docs/reports/figma_import_inventory.md`.
 - [x] (2026-04-25 21:39Z) Map Figma UI areas to imported files: Auth, Doctor, Coordinator, Admin, Shared, UI, Figma wrappers.
 - [x] (2026-04-25 21:39Z) Mark each item as `imported`, `partial`, `missing from export`, or `blocked`.
-- [ ] (YYYY-MM-DD HH:MMZ) List large generated components that should be split in phase 02.
-- [ ] (YYYY-MM-DD HH:MMZ) List temporary preview files and cleanup candidates.
+- [x] (2026-04-26 06:54Z) Refresh `docs/reports/figma_import_inventory.md` after local snapshot import.
+- [x] (2026-04-26 06:54Z) List large generated components that should be split in phase 02.
+- [x] (2026-04-26 06:54Z) List temporary preview files and cleanup candidates.
 
 ## Validation commands
 
@@ -233,12 +237,12 @@ If the repository uses npm instead of pnpm, use `npm install` / `npm run ...`. D
 ## Handoff
 
 - Branch/worktree: `agent/frontend/01-figma-import` at `/Users/piotr/projects/worktrees/shifts-01-figma-import`
-- Completed: preflight, source access investigation, blocker documentation, import inventory report.
-- Validation: no frontend validation commands were run because no complete source was imported and `pwa/package.json` is unavailable.
-- Known issues: Figma MCP source refs are visible from VS Code/Copilot history, but complete MCP resource bodies are unavailable to this Codex session; local/runtime cache is incomplete and transformed.
-- Open questions: OQ-005 in `docs/open_questions.md`.
-- Files changed: `docs/open_questions.md`, `docs/reports/figma_import_inventory.md`, `docs/execution_plans/01_figma_import_plan.md`.
-- Recommended next step: re-run phase 01 in a client that can both call Figma MCP `get_design_context` and read returned MCP resources, or provide a complete Figma Make export/local source snapshot.
+- Completed: local Figma Make snapshot import, minimal runtime wiring, import inventory report, build validation.
+- Validation: `npm install --package-lock=false`; `npm run build` passed with Vite 6.3.5. Orchestrator closeout re-ran both commands on 2026-04-26 07:53Z after cleaning generated artifacts.
+- Known issues: `pnpm` is not installed in this execution session; no lint/typecheck scripts exist; `npm install` reported one high-severity dependency vulnerability but detailed audit requires a lockfile.
+- Open questions: none blocking Phase 01; OQ-005 is resolved by local source snapshot.
+- Files changed by Codex: `pwa/src/app/App.tsx`, `pwa/src/app/routes.tsx`, `docs/open_questions.md`, `docs/reports/figma_import_inventory.md`, `docs/execution_plans/01_figma_import_plan.md`.
+- Recommended next step: Phase 02 frontend refactor, starting with generated component cleanup and routing/package polish listed in the inventory.
 
 ## Change log
 
@@ -247,3 +251,5 @@ If the repository uses npm instead of pnpm, use `npm install` / `npm run ...`. D
 | YYYY-MM-DD HH:MMZ | Frontend Developer Agent | Initial English Figma Make import plan. |
 | 2026-04-25 20:46Z | Frontend Developer Agent | Recorded phase 01 blocker because complete Figma Make source retrieval is unavailable in the current execution session. |
 | 2026-04-25 21:39Z | Frontend Developer Agent | Confirmed Figma MCP resource refs are present in VS Code/Copilot history, but complete resource bodies remain inaccessible to Codex; kept `pwa/` untouched and updated blocker inventory. |
+| 2026-04-26 06:54Z | Frontend Developer Agent | Continued from local `pwa/` source snapshot, wired `App.tsx` to `routes.tsx`, validated `npm run build`, and refreshed Phase 01 inventory/handoff. |
+| 2026-04-26 07:53Z | Orchestrator | Cleaned generated validation artifacts, re-ran install/build validation, and prepared Phase 01 for commit. |
